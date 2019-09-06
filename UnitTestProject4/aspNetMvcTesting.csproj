@@ -106,9 +106,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\aspNETfirstProject\aspNETfirstProject.csproj">
+    <ProjectReference Include="..\aspNETfirstProject\aspNetMvcProject.csproj">
       <Project>{734ba6d1-e582-4f5b-b7a1-f8b56f9e9609}</Project>
-      <Name>aspNETfirstProject</Name>
+      <Name>aspNetMvcProject</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />

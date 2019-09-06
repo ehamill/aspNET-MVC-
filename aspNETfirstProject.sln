@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28010.2003
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "aspNETfirstProject", "aspNETfirstProject\aspNETfirstProject.csproj", "{734BA6D1-E582-4F5B-B7A1-F8B56F9E9609}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "aspNetMvcProject", "aspNETfirstProject\aspNetMvcProject.csproj", "{734BA6D1-E582-4F5B-B7A1-F8B56F9E9609}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestProject4", "UnitTestProject4\UnitTestProject4.csproj", "{27D2507F-2A25-478B-8EAA-507016D1B546}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "aspNetMvcTesting", "UnitTestProject4\aspNetMvcTesting.csproj", "{27D2507F-2A25-478B-8EAA-507016D1B546}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
