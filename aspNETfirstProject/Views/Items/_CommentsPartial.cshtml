@@ -1,0 +1,26 @@
+﻿@model IEnumerable<aspNETfirstProject.Models.Comment>
+@using Microsoft.AspNet.Identity
+<h2>Comments</h2>
+
+@foreach (var comment in Model)
+{
+    <div class="panel panel-default">
+        <div class="panel-body">
+            @comment.Description
+        </div>
+        <div class="panel-footer panel-primary">
+            By: @comment.ApplicationUser.UserName 
+            <br>@comment.Created_at.ToString("MM/dd/yyyy h:mm tt")<br>
+        
+            @if (Request.IsAuthenticated)
+            { 
+
+                if (User.Identity.GetUserId() == comment.ApplicationUser.Id  || User.IsInRole("admin"))
+                {
+                        @Html.ActionLink("Delete", "DeleteComment", new { id = comment.ID })
+                }
+            }
+        </div>
+    </div>
+
+}

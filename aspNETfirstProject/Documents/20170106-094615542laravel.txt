@@ -1,0 +1,2643 @@
+match.com
+eham2
+nor...23
+
+Installing composer..go to site, download it. If you have drupal dev desktop, need to delete it because it includes composer.
+After the download, composer gets downloaded in:
+C:\Program Files (x86)\iis express\PHP\v5.4\php.exe
+
+type in admin console: composer global require "laravel/installer"
+
+Ex.
+C:\WINDOWS\system32>composer global require "laravel/installer"
+Output:
+Changed current directory to C:/Users/eric/AppData/Roaming/Composer
+Using version ^1.3 for laravel/installer
+./composer.json has been updated
+Loading composer repositories with package information
+Updating dependencies (including require-dev)
+Nothing to install or update
+Generating autoload files
+
+
+
+'php' is not recognized as an internal or external command,
+operable program or batch file.
+
+//Working with authentication
+file ".env" is where you put your sql db name, etc 
+enter in credintials for your db. Ex. Made a db named "laravel" admin = ehamill etc.
+DB_HOST=localhost
+DB_DATABASE=laravel
+DB_USERNAME=ehamill
+DB_PASSWORD=Dumber23
+
+
+
+go to composer
+C:\Users\eric>cd C:\Program Files (x86)\DevDesktop\drush
+
+type "composer" to see all the commands commands
+
+
+Do not create a new folder. composer will do it for you..i want new larabal in dir C:\Users\eric\PhpstormProjects\
+// new file called laravel
+//entered this in composer...auto creaets folder "laravel," 5.1 is version.
+composer create-project laravel/laravel C:\Users\eric\PhpstormProjects\laravel 5.1 --prefer-dist
+
+C:\Users\eric\PhpstormProjects
+
+//type php artisan serve in webstorm
+C:\Users\eric\PhpstormProjects\laravel>php artisan serve
+Laravel development server started on http://localhost:8000
+
+then type in chrome localhost:8000
+should see page 
+http://localhost:8000/
+
+go to laravel/ app/ views/ hello.php...change you have arrived to you have arrived Eric..booya
+Note View app.blade is the master view, all other views are embeded in it.
+
+=========
+//Create new model name "AdminBlog"
+//go to terminal and use artisan
+C:\Users\eric\PhpstormProjects\laravel>php artisan make:model AdminBlog
+//this will create a new file "AdminBlog.php" in your app folder.
+// the model will have the following properties blogID, title varchar(255) NOT NULL,
+description text NOT NULL,
+created date,
+userID int NOT NULL,
+imagePath varchar(255),
+documentPath varchar(255). Note: blogId
+//Create a new migration table under "database/migrations/"
+
+$table->increments('id');
+$table->string('title',40);  //max length 40
+$table->text('description');
+$table->string('imagePath',255);
+$table->string('documentPath',255);
+$table->dateTime('created_at');
+$table->integer('user_id');
+
+$table->timestamps();
+
+//after filling all this in, just run "php artisan migrate" on terminal
+
+//Creating a new model
+//php artisan make:model <ModelName>  ...example php artisan make:model Item
+//This creates a new file item.php and a new file in "database/migrations"
+// Then go to database/migrations, find item file, and fill in the properties
+// then run "php artisan migrate" in terminal, this will create a new item table and 
+// do all of the sql for you...go to sql database, and you will see the new table!! sweet.
+
+
+//Modifying the model
+Add a property to the model, ex add "type" to items, change the name of the file (usually just change the date), drop the table in xamp or your sql server...drop table items. then just run "php artisan migrate"
+
+// CONTROLLERS
+// to make one type "php artisan make:controller <ControllerName>"
+C:\Users\eric\PhpstormProjects\laravel>php artisan make:controller DeviceController
+
+You will then find the new controller in app/Http/Controllers
+
+//laravel sql commands
+//$customer = App\Customer:: where('name', '=', 'Tony')->first();
+
+====
+User Sessions
+Getting user info, Example: when user creates a post or blog, you need to get his user_id, etc. These are Sessions.
+Laravel has built in sessions, to enable them just type in the CLT:
+php artisan session:table
+php artisan migrate
+
+This creates the following table: 
+Schema::create('sessions', function ($table) {
+    $table->string('id')->unique();
+    $table->integer('user_id')->nullable();
+    $table->string('ip_address', 45)->nullable();
+    $table->text('user_agent')->nullable();
+    $table->text('payload');
+    $table->integer('last_activity');
+});
+
+//getting the user_id, name, etc from the session
+In the view, just use:
+{{ Auth::user()->id }}
+{{ Auth::user()->name }}
+{{ Auth::user()->role }}
+
+=======
+//created a form, with the following
+<form action="/adminBlog" method="POST" >
+</form>
+However, when submitted get HttpRequest error, but my controller looks fine
+//the issue is you forgot the form first hits the routes.php file
+Thus, update routes.php with the following:
+Route::post('/adminBlog', 'AdminBlogController@store');
+
+//now you can see when form sumbitted, it will be a post to URL adminBlog
+//the route sees it is a post from adminBlog and sends it to the AdminBlogController
+//In adminBlogController, it will look for the "store" function for processing.
+
+//In summary, when working in Laravel, remember the process:
+//ROUTES, CONTROLLERS, VIEWS
+//routes.php, someController.php, view.blade.php
+
+//join
+
+//Debugging use print_r to see all the fields of an object. Very usefull
+//print join to see how to access joined fields
+{{ print_r($adminBlog) }}
+stdClass Object ( [id] => 1 [title] => sjdlf a sdfjl [description] => sdj fsld f [imagePath] => [documentPath] => [user_id] => 1 [created_at] => 2016-03-15 22:58:11 [updated_at] => 2016-03-15 22:58:11 [name] => eric hamill ) 1
+
+
+This never works..get error
+{{ csrf_field() }}
+
+DELETE ISSUES:
+Laravel states to use the following in the view:
+<form action="{{ url('task/'.$task->id) }}" method="POST">
+            {{ csrf_field() }}
+            {{ method_field('DELETE') }}
+
+            <button type="submit" id="delete-task-{{ $task->id }}" class="btn btn-danger">
+                <i class="fa fa-btn fa-trash"></i>Delete
+            </button>
+        </form>
+
+This issue is  {{ csrf_field() }} and  {{ method_field('DELETE') }} result in errors. There are alot of blogs that say to update laravel, however, this still doesn't seem ot work.
+
+So I modified the delete form:
+<form action="{{ url('adminBlog/'.$adminBlog->blogId) }}" method="POST">
+	<input type="hidden" name="_token" value="{{ csrf_token() }}">
+	<input type="hidden" name="_method" value="DELETE">
+
+	<button type="submit" class="btn btn-danger">
+  		<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+		Delete
+	</button>
+</form>
+
+
+Thus, for delete need to change view
+Update the route:
+/*Delete admin blogs */
+Route::delete('/adminBlog/{adminBlog}', 'AdminBlogController@destroy');
+//this will call the function "destroy" in the adminBlogController...note the "{adminBlog}" 
+	passes the id of the blog to the controller
+
+in the controller, the destroy function is called. The "AdminBlog::destroy($id);" is called an Eloquent function.
+It deletes the blog at the given key. Of course, you could also write the sql delete statement yourself.
+
+public function destroy($id)
+	{
+		AdminBlog::destroy($id);
+		return redirect('/adminBlog');
+	}
+
+Issue with checking extensions. The laravel doesn't work, says mime type not found in php.ini. Laravel recommends changing php file, i did that still doesn't work. Also, if you on service provider like godaddy, doubt you can change it.
+Made the following code to check for correct extension, returns user input (title, description) if it finds an error.
+
+	public function store(Request $request)
+	{
+		$title = $request->title;
+		$description = $request->description;
+
+		$this->validate($request, [
+			'title' => 'required|max:255',
+			'description' => 'required',
+			'imagePath' => 'max:50000000', //mimes don't work, need to change php.ini file
+			'documentPath' => 'max:1000|mimes:doc,docx',
+			'user_id' => 'required',
+			'role' => 'in:admin'
+		]);
+
+
+
+		//check if picture uploaded, if yes, check extension and return to create form if error
+		//if data valid save path and asign new name (append time) to picture (preventing duplicate names)
+		if (Input::file('imagePath')) {
+			$file = Input::file('imagePath'); // need use input;
+			$file_name = $file->getClientOriginalName();
+			//$file_size = round($file->getSize() / 1024);
+			$file_ex = $file->getClientOriginalExtension();
+			//$file_mime = $file->getMimeType();
+			$parameters = ['title' => 'Something went wrong.', 'description' => $description];
+			//return redirect()->back()->with($parameters);
+			if (!in_array($file_ex, array('jpg', 'gif', 'png')))
+				return view('createForm', [
+					'title' => $title,
+					'description' => $description,
+				])->withErrors('Invalid image extension we just allow JPG, GIF, PNG');
+			//->withErrors('Invalid image extension we just allow JPG, GIF, PNG')
+			//Append time to image name..thus no duplicate error..his means hours min and seconds
+			$getTime = date("his");
+			$newname = $getTime . $file_name;
+
+			$file->move(base_path().'/public/images/', $newname);
+		};
+
+		$adminBlog = AdminBlog::create([
+			'title' => $request->title,
+			'description' => $request->description,
+			'user_id' => $request->user_id,
+			'imagePath' => $newName,
+			//'documentPath' => $request->documentPath,
+
+		]);
+
+
+		return redirect('/adminBlog');
+	}
+
+While the code works, it is messy and I do not want to repeat the code for update. Not to mention, we practically have to duplicate the code when checking document extensions. We would rather have a function.
+
+The problem is calling another function from a controller function. Laravel will not recognize the other function unless you use "this->" and "return". The solution is this:
+
+	public function store(Request $request)
+	{
+		$title = $request->title;
+		$description = $request->description;
+
+
+		$this->validate($request, [
+			'title' => 'required|max:255',
+			'description' => 'required',
+			'imagePath' => 'max:50000000', //mimes don't work, need to change php.ini file
+			'documentPath' => 'max:1000|mimes:doc,docx',
+			'user_id' => 'required',
+			'role' => 'in:admin'
+		]);
+
+		//Check if image path correct type(.jpg, .gif, etc), else return to create view.
+		if (Input::file('imagePath')) {
+			$file = Input::file('imagePath');
+			//return $this->checkImageType($file,$title,$description);
+			$newName = $this->checkImageType($file,$title,$description);
+		}
+
+
+
+		$adminBlog = AdminBlog::create([
+			'title' => $request->title,
+			'description' => $request->description,
+			'user_id' => $request->user_id,
+			'imagePath' => $newName,
+			//'documentPath' => $request->documentPath,
+
+		]);
+
+
+		return redirect('/adminBlog');
+	}
+
+//and create another public function in the controller
+	public function checkImageType($file,$title,$description)
+	{
+		$file_name = $file->getClientOriginalName();
+		//$file_size = round($file->getSize() / 1024);
+		$file_ex = $file->getClientOriginalExtension();
+		//$file_mime = $file->getMimeType();
+		//$parameters = ['title' => $title, 'description' => $description];
+		//return redirect()->back()->with($parameters);
+		//Check if extension allowed, else return to create view with errors.
+		if (!in_array($file_ex, array('jpg', 'gif', 'png')))
+			return view('createForm', [
+				'title' => $title,
+				'description' => $description,
+			])->withErrors('Invalid image extension we just allow JPG, GIF, PNG');
+		//->withErrors('Invalid image extension we just allow JPG, GIF, PNG')
+		//Append time to image name..thus no duplicate error..his means hours min and seconds
+		$getTime = date("his");
+		$newname = $getTime . $file_name;
+
+		$file->move(base_path().'/public/images/', $newname);
+		return $newname;
+	}
+
+Now we can reuse the same function throughout the controller. What if you wanted to use the function in different controllers? ouch..idk. To do list.
+
+
+How to edit an item...make route, controller, views-edit button
+
+=====
+ACCOUNT EDITING. Adding User or Profile properties. 
+
+The great thing about laravel is that when a new project is created it includes user login and register, but this is also bad. Because it is extremely hard to figure out. Where is the account login, register pages? How do you update the account?
+
+All the files are in resources->views->auth
+
+To get to the files, go to the app.blade (master page) you will see the code which calls the urls
+
+@if (Auth::guest())
+	<li><a href="{{ url('/auth/login') }}">Login</a></li>
+	<li><a href="{{ url('/auth/register') }}">Register</a></li>
+@else
+	<li class="dropdown">
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" 
+			aria-expanded="false">{{ Auth::user()->name}} <span class="caret"></span></a>
+	  <ul class="dropdown-menu" role="menu">
+		<li><a href="{{ url('/auth/logout') }}">Logout</a></li>
+	  </ul>
+	</li>
+@endif
+
+So how does the login, register and logout work (this was given to us by laravel and is hard to understand)?
+Since it's a url, we know it has a route. Go to app->http->routes.php
+
+You will see in routes.php:
+Route::controllers([
+	'auth' => 'Auth\AuthController', 
+	'password' => 'Auth\PasswordController', 
+]);
+ 
+'auth' is for login, register, logout, etc. 'password' only resets passwords
+in the app.blade.php, all of the urls call '/auth/login' or /auth/'something', thus all 3 routes in master page
+are calling teh AuthController, so lets go to it and see how it processes the login and register views.
+
+To find the authController, go to App->Http->Controllers->Auth folder. The first thing the controller calls is "use AuthenticatesAndRegistersUsers;."
+This file is hard to find, but is found in "vendor/laravel/framework/src/illuminate/foundation/auth/"
+This, "use AuthenticatesAndRegistersUsers;" has traits. Basically, it has functions that can be used in many different controllers. You expect to see login, or register, instead you see "getLogin" postLogin, getRegister, and postRegister functions.
+
+So when get "login" is passed to this, it calls the getLogin function and returns the view.
+Similary, if it is passed a post from the login form, it will call the postLogin in this file.
+Similary, when the url "auth/register" is clicked, the getRegister or postRegister functions are called.
+
+Our first thought is to modify these files, but we should not. These are vendor files, so everytime composer is ran, they will get overwriten.
+
+All changes to login or register need to be done within the authController.
+In the authController, just overide these functions by copy/paste and then modifying them.
+
+Ex. In AuthController, copy the postRegister function. The hard part here, which took me hours to figure out, was how to get the $user = find::user($id). Auth::user() doesn't work, and alot of other stuff didn't work. Finally I found you have to use the line "$user = $this->auth->user();" to get the user. Then you can simply get the job title from the request and save the "jobTitle" field to the user. Note: this does not do validation, but you easily could:
+
+	public function postRegister(Request $request)
+	{
+		$validator = $this->registrar->validator($request->all());
+
+		if ($validator->fails())
+		{
+			$this->throwValidationException(
+				$request, $validator
+			);
+		}
+
+
+		$this->auth->login($this->registrar->create($request->all()));
+//email and password are validated. LETS Add some new properties..
+		//Get user...HARD PART to find correct code!!
+		$user = $this->auth->user();
+
+		//do some validation for jobTitle, then save it if ok
+		$user->jobTitle = $request->jobTitle;
+		$user->save();
+
+		return redirect($this->redirectPath());
+
+
+	}
+
+Or, in my case, I added an avatar for the account, cool thing is the error message for wrong file type still works:
+	public function postRegister(Request $request)
+	{
+		$validator = $this->registrar->validator($request->all());
+
+		if ($validator->fails())
+		{
+			$this->throwValidationException(
+				$request, $validator
+			);
+		}
+
+
+		$this->auth->login($this->registrar->create($request->all()));
+
+		//Get user and save image
+		$user = $this->auth->user();
+		$newName = '';
+		if (Input::file('imagePath')) {
+			$file = Input::file('imagePath'); // need use input;
+			$file_name = $file->getClientOriginalName();
+			$file_ex = $file->getClientOriginalExtension();
+			if (!in_array($file_ex, array('jpg', 'gif', 'png')))
+				return view('../auth/register', [
+					'name' => $user->name,
+					'email' => $user->email,
+				])->withErrors('Invalid image extension we just allow JPG, GIF, PNG');
+			//->withErrors('Invalid image extension we just allow JPG, GIF, PNG')
+			//Append time to image name..thus no duplicate error..his means hours min and seconds
+			$getTime = date("his");
+			$newName = $getTime . $file_name;
+			$file->move(base_path().'/public/images/gravatars/', $newName);
+		};
+		$user->imagePath = $newName;
+		$user->save();
+
+
+		return redirect($this->redirectPath());
+	}
+
+I won't go into adding the gravatar to the view, it's very simple. Hard part is getting the correct path, but that only takes a couple tries.
+
+Next, we will add some code so that users can Edit thier profile/account.
+
+=====
+EDITING USER ACCOUNTS
+We want to allow user's to change name, email, and gravatar. Name and email need to be unique, gravatar is optional, but must have an image extension.
+
+In the view, we will add a url to get "profile", and after the profile is changed, we will call the postProfile.
+Thus, we will simply change the app.blade.php code for the get:
+
+@if (Auth::guest())
+	<li><a href="{{ url('/auth/login') }}">Login</a></li>
+	<li><a href="{{ url('/auth/register') }}">Register</a></li>
+@else
+	<li class="dropdown">
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" 
+			aria-expanded="false">{{ Auth::user()->name}} <span class="caret"></span></a>
+	  <ul class="dropdown-menu" role="menu">
+		<li><a href="showProfile">Profile</a></li> <!-- NEW CODE!! -->
+		<li><a href="{{ url('/auth/logout') }}">Logout</a></li>
+	  </ul>
+	</li>
+@endif
+
+Now the authController will still handle this, so we go into the AuthController and add the funcions:
+
+	public function getProfile(Request $request){
+	}
+
+	public function postProfile(Request $request){
+	}
+
+Let's not use the register.blade.php, because we need to insert data. Lets add a new view called "profile.blade.php", it is just a copy of register.blade.php. Except, it will pre-fill user data. Thus, lets modify the authController to pass in the user's records to the profile view.
+
+Tried this, but the program will not call getProfile postProfile or profile, obviously there is some routing magic here. I could dive into it, but it would be like changing Drupal code. Instead, I will simply create a route and a new controller, ProfileController, and do it myself. At this point, should I do away with all the login and register?? idk, laravel login and register checks throttling and stuff. Want to leave it alone.
+
+Make new profile controller in cmd line:
+php artisan make:controller ProfileController
+
+We are passing it the url "profile/2" where 2 is the user_id. We also need to make sure user is authorized (logged in) to access this view. This was simple enough, however, if someone typed in profile/3, they would see someone else's profile. So what we need to do is authorize the person in the controller and get their id in the controller. After a couple hours of searching, I found the answer.
+
+Routes:
+Route::get('showProfile/', 'ProfileController@show');
+
+ProfileController:
+public function show()
+	{
+
+		if(\Auth::check() ){
+			return view('account/profile', ['user' => User::findOrFail(\Auth::user()->id)]);
+		} else {
+			return redirect('/');
+		}
+	}
+
+app.blade.php:
+	<li class="dropdown">
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" 
+			aria-expanded="false">{{ Auth::user()->name}} <span class="caret"></span></a>
+	  <ul class="dropdown-menu" role="menu">
+		<li><a href="showProfile/">Profile</a></li>     <!-- NEW CODE!! -->
+		<li><a href="{{ url('/auth/logout') }}">Logout</a></li>
+	  </ul>
+	</li>
+
+
+The hard part was that Auth::check() was not working. Thus, have to use "\Auth::check()" and "\Auth::user()->id" WITH the forward slash. Once this is done, there is no need to pass in the user's parameters!! Simple and easy. KISS.
+
+So what happens when we include the auth on __construct in the ProfileController. Ex. Add the following function:
+
+public function __construct()
+	{
+		$this->middleware('auth');
+
+	}
+
+All this function does, is if user is not logged in, and types "showProfile/" in the URL, then he is redirected to the login page. If we delete this function, he is directed back to the home page. Thus, this function does very little. But it is nice to know what it does.
+=====
+Updating the profile.
+
+Now that we can see the profile, we need to edit it. The issue is we cannot call Post/register again using the auth controller, because we just cannot from this page, and we also cannot because it is thinking this is a new user, not a user editing his profile (ie will get error for email or name not being unique). Thus, we need a custom validator for the updateProfile.
+
+1. Create a new Route in routes.php:
+Route::Post('updateProfile/', 'ProfileController@update');
+
+2. in the view, only showing partial..used multipart because it can upload a picture:
+ 
+<form class="form-horizontal" enctype="multipart/form-data" role="form" method="POST"
+	action="updateProfile">
+<input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+	<div class="form-group">
+		<label class="col-md-4 control-label">Name</label>
+		<div class="col-md-6">
+			<input type="text" class="form-control" name="name" value="{{ $user->name }}">
+		</div>
+	</div>
+
+3. In the controller, need to validate the data, return error messages. Passwords can be null, but if updated, they need to be verified or changed. In ProfileController, added code to function "update":
+
+	public function update(Request $request)
+	{
+		// Get user
+		$user = User::findOrFail(\Auth::user()->id);
+
+		$this->validate($request, [
+			//Ignore a given keyId...unique:<table_name>,<field>,' . <keyid>,
+			'name' => 'required| unique:users,name,'. $user->id,
+			'email' => 'required|max:255|unique:users,email,' . $user->id,
+			'imagePath' => 'max:50000000',
+			'password'=> 'confirmed|min:6'
+			]);
+
+
+		//SAVE FIELDS
+		$user->name = $request->name;
+		$user->email = $request->email;
+		$user->jobTitle = $request->jobTitle;
+		
+		//if password field empty, do nothing, else save password
+		if($request->password != ''){
+			$user->password = Hash::make($request->password);
+		}
+		$user->save();
+		return redirect('/');
+}
+
+Only hard thing here was how to check if email or userName was already in use. 
+Found "'name' => 'unique:users,name,'. $user->id," This code says check unique, in "users" table, the name field, and ignore this $user->id. Same goes for the email.
+
+Few things about the password. The validator "confirmed" makes sure the password and password-confirmed fields in the view are the same. Also, you need to hash the password, "$user->password = Hash::make($request->password); ", if you get an error, remember to code "use Hash;" at top of file. Also, if the password field is empty, it will still get hashed. Thus, only save a new password if password field not empty.
+
+
+=======================================================================
+Advanced AJAX Tutorial  - Topic: Adding Comments.
+
+1. create a new Comment Model, just enter "php artisan make:model Comment" in cmd line field.
+2. This creates a Comment.php file in the App folder. It also creates a migration (code to build a table).
+ 
+
+3. Go to database->migrations and you will see the create_comments_table
+public function up()
+	{
+		Schema::create('comments', function(Blueprint $table)
+		{
+			$table->increments('id');
+			$table->timestamps();
+		});
+	}
+
+As you can see, it already has the unique id, and timestamps (created_at and updated_at fields)
+Thus, we need to add some more properties to this table.
+
+public function up()
+	{
+		Schema::create('comments', function(Blueprint $table)
+		{
+			$table->increments('id');
+			$table->integer('item_id');
+			$table->text('body');
+			$table->enum('type', ['device', 'phone','ap','switch','news']); //optional
+			$table->integer('user_id');
+			$table->timestamps();
+		});
+	}
+
+If the whole website just uses items, then you don't need enum. But lets say you have items and AdminBlogs, each use their own uniqueID, and you want to use the same comments table for both. Then you need the "type" because the adminBLog and ITem might have same uniqueID, but won't have same type.
+
+While I made this, I notes my Items table was missing in it's type the 'news' genre. So I added this to the items_table in migrations, and I changed the name of the items table (by updating the date). You then have to delete the "items" table in sql manually. Otherwise laravel will say it already exists (i'm sure there's a better way, but this is developement, and it is not a big deal).
+
+After filling all this in, just run "php artisan migrate" on terminal. It creates the items table and comments table for you.
+
+4. Adding comment link in the view.blade.php file:
+
+<!-- Show comments link Ex. "Comments(5)"-->
+<a href="#0"  onclick="show_comments({{ $adminBlog->blogId }})" >
+ Comments({{ \App\AdminBlog::get_count($adminBlog->blogId, $itemType) }})</a>
+						
+<!-- hidden comments  -->
+<span id="comment{{ $adminBlog->blogId }}" ></span>
+
+
+When "Comments(5)" clicked, it triggers the show_comments fn in javascript, and passes the id and itemType of the blog, after the ajax code is ran, it will inject html "Comments" into the corresponding
+<span id="comment{{ $adminBlog['blogId'] }}" ></span>
+
+Now lets write some javascript at the bottom of our blade.php file before the @section. 
+
+Using blade in javascript/ajax. Tip: just remember the quotes!! Beware of the dreaded "500 internal server error".
+If you get the error: 1. Make sure you pass the token, simple as shown below. 2. Start deleting code in your controller until you get a success (use alert for troubleshooting!). 3. Keep deleting stuff until success. 4. Sometimes Chrome doesn't show 500 error, thus use Firebug.
+
+Or cheat, and use my code:
+
+<!-- Script to hide/show buttons -->
+<script type="text/javascript">
+
+function show_comments($id) {
+
+	var incorrectGenre = {{$itemType}}; <--error, no quotes
+	var correctGenre = '{{$itemType}}'; <-- correct way to use angular in JS
+}
+
+Full code:
+	<script type="text/javascript">
+
+		function show_comments($id) {
+
+			var itemId = $id;
+			var genre = '{{$itemType}}';
+
+            $.ajax({    //create an ajax request to load_page.php
+				method: "POST",
+				url: "show_comments",
+				data: {_token: "{{ csrf_token() }}",   // MUST PASS TOKEN! or get internal 500 error
+					itemId: itemId, genre: genre, userId: userId,
+					role: role,
+				}, 
+				dataType: "html",   //expect html to be returned
+				success: function (data) {
+					alert(data);
+					//or use $("#comment" + itemId).html(data);
+					//inserts "data" array into #comment1 span..not pretty, but can see table!!
+				},
+				error: function(){
+					alert('failure at Comments');
+				}
+			});
+		}
+
+	</script>
+
+
+Time for some ROUTING fun!! Looking at this ajax code, it will POST with a url of "show_comments". 
+Thus, in routes.php add:
+// AJAX ROUTES
+Route::post('show_comments', 'AjaxController@show_comments');
+
+Create the AjaxController by typing in command line:
+C:\Users\eric\PhpstormProjects\laravel> php artisan make:controller AjaxController
+
+in the controller, simply do:
+public function show_comments(Request $request)
+	{
+		$comments = Comment::All();
+		return $comments;
+	}
+
+Now, when comments clicked, an alert shows you all the comments in the database. Notice, you have to pass the token, else you get a 500 internal server error. Very hard to fix. You also get this error if you have any errors in the controller or the javascript output. There are lots of answers on the web, and most of them didn't WORK! Example:
+
+public function show_comments(Request $request)
+	{
+		$comments = Comment::GetAll(); <--produces 500 error due to bad query
+
+		//return Response::json($comments);<--produces 500 error also 
+		return $comments;
+	}
+
+Ok, So we finally got an alert that shows us all of our comments in the comments table. The problem this array is passed back to the javascript. Thus, we have to use javascript to go through the array and print it out nicely, damn near impossible.
+Instead of having javascript deal with the html, we will use the controller to output something pretty. Note: In the query, Two "where" clauses in a row is equivalent to an "AND" in sql.
+
+AjaxController code:
+public function show_comments(Request $request)
+	{
+		$itemId = $request->itemId;
+		$genre = $request->genre;
+
+		$comments = Comment::All();
+		//$comments = Comment::find(4);
+		$comments = DB::table('comments')
+			->join('users', 'comments.user_id', '=', 'users.id')
+			->select('comments.*','comments.id as commentId','users.id as userId', 'users.name as author',
+				'users.imagePath as gravatar')
+			->where('comments.item_id','=',$itemId)//AND
+			->where('comments.type','=',$genre)
+			->orderby('comments.created_at', 'DSC')
+			->get();
+
+		$html = '';
+		if ($comments == NULL){
+			$html .= 'No Comments Found';
+		} else {
+
+			foreach ($comments as $comment) {
+				$html .= '<div class="col-sm-12 comments " >';
+				$html .= $comment->body . '<br><br>';
+				$html .= 'Author:' . $comment->author . ' Date:' . $comment->updated_at;
+				$html .= '</div>';
+			};
+		}
+		return $html;
+	}
+
+=========
+ADDING A COMMENT
+ In the comment.php field add the fillable line (else you will get a mass assigment or 500 internal server error later):
+class Comment extends Model {
+
+    protected $fillable = ['item_id', 'body', 'type', 'user_id'];
+
+In the view, insert a form:
+<form onsubmit="add_comment({{ $adminBlog->blogId }})"
+	  id="add_comment_form{{ $adminBlog->blogId }}" style="display: none">
+	<input type="hidden" name="itemId" value="{{ $adminBlog->blogId }}" />
+	<input type="hidden" name="type" value="{{$itemType}}" />
+	
+	Add Comment:
+	<textarea id = "textBody{{ $adminBlog->blogId }}" class="newComment"  /></textarea>						<input class="btn btn-info" type="submit" value="Submit" />
+</form>
+
+Add the following javascript code to the blade view, or in another JS file:
+
+//on click, show add_comment form
+function show_add_comment_form($id) {
+	$( "#add_comment_form" + $id).show("slow");
+}
+
+function add_comment($id) {
+
+	var itemId = $id;
+	var body = document.getElementById('textBody' + itemId).value; //id needs to be unique..thus use "+ itemId"
+		var type = '{{$itemType}}';
+	
+	@if (!Auth::guest()){ 
+		var userId = '{{ Auth::user()->id}}';
+		var role = '{{ Auth::user()->role}}';
+	}
+	@endif
+	$.ajax({
+		method: "POST",
+		url: "add_comment",//post "add_comment" handled by AjaxController
+		data: {_token: "{{ csrf_token() }}",   // MUST PASS TOKEN! or get internal 500 error
+			itemId: itemId, type: type, body: body, userId: userId,
+		}, //pass device id to show_comments
+		dataType: "html",   //expect html to be returned
+		success: function (data) {
+			show_comments($id);
+		},
+		error: function(){
+			alert('failure at add Comments');
+		}
+	});
+}
+
+My one hour BUG from hell. so this code was working fine. Then i tried it on mozilla, instead of chrome and it crashed "
+Trying to get property of non-object" error code..wtf.. could not find a solution. 
+The problem was this in my js code
+				var userId = '{{ Auth::user()->id}}';
+				var role = '{{ Auth::user()->role}}';
+
+My problem was in Mozilla, i was simply NOT LOGGED IN. THus, if a person is not logged in, you are trying to access an object (user) that doesn't exist. Thus solution is:
+@if (!Auth::guest()){
+	var userId = '{{ Auth::user()->id}}';
+	var role = '{{ Auth::user()->role}}';
+}
+
+DOH...so many times, the simplest stuff drives you bonkers.
+
+Route::POST('add_comment', 'AjaxController@add_comment');
+
+In the AjaxController add:
+public function add_comment(Request $request)
+	{
+		if ($request->body == ''){
+			return 'Must enter a message';
+		} else {
+
+
+			Comment::create([
+
+				'item_id' => $request->itemId,
+				'body' => $request->body,
+				'type' => $request->type,
+				'user_id' => $request->userId,
+			]);
+			//return 'new Comment added';
+		}
+	}
+
+Boom, done..eazy
+
+====
+Inserting a function inside a blade view. Ex. Get the number of comments for an adminBLog post
+
+In my Comment.php model file added a function get_count which must be static:
+
+class Comment extends Model {
+
+    protected $fillable = ['item_id', 'body', 'type', 'user_id'];
+	//
+    /**
+     * Get Count of comments for an Item
+     */
+    public static function get_count($id, $type)
+    {
+        //return $this->belongsTo(User::class);
+        return DB::table('comments')
+            ->where('item_id','=', $id)
+            ->where('type','=',$type)
+            ->count('user_id');
+    }
+
+}
+
+In the blade file we have:
+<!-- Show comments link Ex. "Comments(5)"-->
+<a href="#0"  onclick="show_comments({{ $adminBlog->blogId }})" >
+ Comments({{ \App\Comment::get_count($adminBlog->blogId, $itemType) }})</a>
+
+
+==
+DELETING COMMENTS
+So i addes some code to delete comments. THought it would be easy. in my AjaxController, added more code so that if user created comment or was admin they could delete it.
+
+my code in AjaxController:
+foreach ($comments as $comment) {
+				$html .= '<div class="col-sm-12 comments " >';
+				$html .= $comment->body . '<br><br>';
+				$html .= 'By: ' . $comment->author . '<br>Posted: ' . date(("F j, Y"), strtotime($comment->updated_at));
+				 if(($comment->userId == $userID) or $role == 'admin' ) {
+					 $html .=
+					 '<form style="display:inline; float: right" action="{{ url(delete_comment/'. $comment->commentId .
+				 		'}}" method="POST">' . '
+							<input type="hidden" name="_token" value="{{ csrf_token() }}">
+							<input type="hidden" name="_method" value="DELETE">
+
+
+							<button type="submit" class="btn btn-danger">
+							<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+							Delete
+							</button>
+					</form> ';
+				}
+				$html .= '</div><div class="col-sm-12" ><br/></div>';
+			};
+		}
+		return $html;
+
+But I am getting a tokenMismatchException..yey. I deleted teh hidden token input, and get same error. So obviously, no token is being send because the comments are generated. wtf.
+
+======
+Add jobTitle field for account. Add it to register view.
+in cmd line tool type: php artisan make:migration add_paid_to_users
+This creates a new migration.
+
+edit the migration to make a new column:
+class AddJobTitleToUsers extends Migration {
+
+	/**
+	 * Run the migrations.
+	 *
+	 * @return void
+	 */
+	public function up()
+	{
+		//
+		Schema::table('users', function($table) {
+			$table->string('jobTitle')->nullable();
+		});
+	}
+
+	/**
+	 * Reverse the migrations.
+	 *
+	 * @return void
+	 */
+	public function down()
+	{
+		//
+		Schema::table('users', function($table) {
+			$table->dropColumn('jobTitle');
+		});
+	}
+
+Then simply type: php artisan migrate in cmd line. Check sql table and you see new field.
+Make new field fillable in users.php.
+In the authController, edit the postRegister function. Simply add the lines at the end:
+public function postRegister(Request $request)
+	{.....
+
+		$user->jobTitle = $request->jobTitle;
+		$user->save();
+	
+		return redirect($this->redirectPath());
+}	
+
+
+===============
+CREATING AN ADMIN PAGE
+Next, we need an admin page for: changing user roles (admin, user), and changing passwords. Laravel has a built in password reset, but it sends an email and does a bunch of other complicated things. Thus, we will not use it.
+
+First, we add three new routes. One for the admin page, the other two are for the ajax calls:
+
+Route::get('showProfile/adminPage', 'ProfileController@admin');
+Route::POST('showProfile/change_role', 'ProfileController@change_role');
+Route::POST('showProfile/change_password', 'ProfileController@change_password');
+
+Add three functions to the ProfileController:
+public function admin()
+	{
+		$users = User::all();
+
+		if(\Auth::check() && (\Auth::user()->role == 'admin')){
+			return view('account/admin', ['users' => $users]);
+		} else {
+			return redirect('/');
+		}
+	}
+
+public function change_role(Request $request)
+	{
+		$user = User::find($request->userId);
+		$user->role = $request->role;
+		$user->save();
+	}
+
+public function change_password(Request $request)
+	{
+		$user = User::find($request->userId);
+		if($request->password != ''){
+			$user->password = Hash::make($request->password);
+		}
+		$user->save();
+	}
+
+Finally, update the view and add javascript to handle the ajax calls to change_role and change_password. The only tricky spot was the password update. The form must "return false" else the page will reload. And the javascript uses a couple of new functions to get the value of the password entered, and to clear the password input after the submission.
+
+					<table class="table table-striped task-table">
+					@if (count($users) > 0)
+						<tbody>
+							<tr>
+								<th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+								&nbsp;&nbsp;&nbsp; Name
+								</th>
+								<th>
+									Email
+								</th>
+								<th>
+									Role
+								</th>
+								<th>
+									Update Password
+								</th>
+
+							</tr>
+							@foreach ($users as $user)
+							<tr>
+								<td class="col-xs-2">
+									@if($user->imagePath)
+										<img src="../images/gravatars/{{ $user->imagePath }}" alt="gravatar"
+											 height="40"  class="img-circle">
+									@else
+										<img src="../images/gravatars/pinkKitty.jpg" alt="gravatar"
+											 height="40"  class="img-circle">
+									@endif
+									&nbsp;&nbsp;
+									{{ $user->name }}
+								</td>
+								<td class="col-xs-2">
+									{{ $user->email }}
+								</td>
+								<td class="col-xs-2">
+									<select id="{{ $user->id }}" onchange="change_role(this.id, this.value)">
+										<option value="user"
+											@if ($user->role === "user")  selected @endif >User</option>
+										<option value="admin"
+											@if ($user->role === "admin")  selected @endif >Admin</option>
+									</select>
+									<div class="greenText" id="showChange{{$user->id }}" style="display: none" >
+										Updated </div>
+								</td>
+								<td class="col-xs-2">
+									<form  method="post" onsubmit="return false;">
+										<input type="password" id="password{{$user->id }}" value="" placeholder="New Password"/>
+										<input class="btn-warning" type="submit" onclick="change_password({{$user->id }})"
+											   value="Change Password" />
+										<div class="greenText" id="showUpdate{{$user->id }}" style="display: none" >
+											Password Changed! </div>
+									</form>
+								</td>
+							</tr>
+
+
+							@endforeach
+						</tbody>
+
+					@endif
+
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+
+		function change_role($id, $role) {
+
+			var userId = $id;
+			var role = $role;
+			//alert('this id is: ' + itemId);
+			$.ajax({   
+				method: "POST",
+				url: "change_role",
+				data: {_token: "{{ csrf_token() }}",   // MUST PASS TOKEN! or get internal 500 error
+					userId: userId, role: role,
+				}, 
+				dataType: "html",   //expect html to be returned
+				success: function () {
+					$( "#showChange" + userId).show("slow");
+					//alert('changed role');
+				},
+				error: function(){
+					alert('failure at change role');
+				}
+			});
+		}
+
+		function change_password($id) {
+			var userId = $id;
+			var password = $("input#password" + $id).val();
+			$.ajax({   
+				method: "POST",
+				url: "change_password",
+				data: {_token: "{{ csrf_token() }}",   // MUST PASS TOKEN! or get internal 500 error
+					userId: userId, password: password,
+				}, 
+				dataType: "html",   
+				success: function () {
+					$( "#showUpdate" + userId).show("slow");
+					document.getElementById("password" + userId).value = '';//clear password text
+					//alert('changed password');
+				},
+				error: function(){
+					alert('failure at change Psswd');
+				}
+			});
+		}
+</script>
+@endsection
+
+
+====
+APPROVING BLOG POSTs (admin only) 
+First step, add a link to the pending_list of unapproved posts in the admin's profile page (course there are multiple views you could put this in):
+
+<a  href="../showProfile/pending" class="btn btn-warning active" role="button">
+	Pending Posts ({{ \App\Item::get_pending_count() }})</a>
+
+The code: "Pending Posts ({{ \App\Item::get_pending_count() }})" will show "Pending(15)", and calls on the static function in the Item Model, found under App->Item.php:
+
+<?php namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+use DB; <-- ADDED
+
+class Item extends Model {
+
+	//
+    protected $fillable = ['type','title', 'description', 'imagePath', 'documentPath','user_id','approved'];
+
+    public static function get_pending_count()
+    {
+        return DB::table('items')
+            ->where('approved','=', 0)
+            ->count('id');
+    }
+
+}
+
+Added a new Route for the link to the  page:
+Route::get('showProfile/pending', 'ProfileController@pending');
+
+Added the pending() function to the ProfileController:
+public function pending()
+	{
+		$items = DB::table('items')
+			->join('users', 'items.user_id', '=', 'users.id')
+			->select('items.*','items.id as itemId','users.id as userId', 'users.name as author', 'users.imagePath as gravatar')
+			->where('items.approved', '=', 0)
+			->orderby('items.created_at', 'DSC')
+			->get();
+
+		//double check to make sure user logged in and admin
+		if(\Auth::check() && (\Auth::user()->id == 'admin')){
+			return view('account/pendingList', ['items' => $items]);
+		} else {
+			return redirect('/');
+		}
+	}
+
+Created a new view pendingList.blade.php with some javascript to approve/delete posts and then hide the posts:
+@extends('app')
+
+@section('content')
+	<div class="container">
+		<div class="row">
+			<div class="col-md-10 col-md-offset-1">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h1 class="text-center">Pending Posts</h1>
+					</div>
+
+					<!-- Display blogs-->
+					<table class="table table-striped task-table">
+					@if (count($items) > 0)
+						<tbody>
+							@foreach ($items as $item)
+
+							<!--   SHOW ITEM DETAILS -->
+							<!-- Hidden Text "Approved" and "Deleted" -->
+
+							<tr id="hideRow{{$item->itemId}}">
+								<td class="col-xs-2">
+									Author: {{ $item->author }}<br/><br/>
+									@if($item->gravatar)
+									<img src="../images/gravatars/{{ $item->gravatar }}" alt="gravatar"
+										 height="80" width="80" class="img-circle">
+									@else
+									<img src="images/gravatars/pinkKitty.jpg" alt="gravatar"
+											 height="80" width="80" class="img-circle">
+									@endif
+									<br/>
+								</td>
+
+								<td class="col-xs-8">
+									Title: {{ $item->title }}<br/>
+									<br/>
+									Description: {{ $item->description }}<br/><br/>
+									<!-- imagePath:  $adminBlog->imagePath }}{ print_r($adminBlog) }}<br/>-->
+									@if ($item->imagePath)
+										<img src="../images/{{ $item->imagePath }}" alt="pic" class="img-rounded">
+										<br/><br/>
+									@endif
+									@if ($item->documentPath)
+										<a class="btn btn-primary" href="documents/{{ $item->documentPath }}"
+										   	role="button">
+											<span class="glyphicon glyphicon-file" aria-hidden="true"></span>
+											{{ substr($item->documentPath,6) }}</a>
+										<br/><br/>
+									@endif
+
+									<!-- Approve button -->
+									<button id="{{ $item->itemId }}" onclick="approve_post(this.id)"
+											class="btn btn-success">
+											<span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+											Approve
+									</button>
+
+									<!-- Delete button -->
+									<button onclick="delete_post({{ $item->itemId }})" type="submit" class="btn btn-danger">
+										<span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+										Delete
+									</button>
+								</td>
+							</tr>
+
+							@endforeach
+						</tbody>
+
+					@endif
+
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script type="text/javascript">
+
+		function approve_post($id) {
+
+			var itemId = $id;
+			//alert('this id is: ' + itemId);
+            $.ajax({    //create an ajax request to load_page.php
+				method: "POST",
+				url: "approve_post",
+				data: {_token: "{{ csrf_token() }}",   // MUST PASS TOKEN! or get internal 500 error
+					itemId: itemId,
+				}, //pass device id to show_comments
+				dataType: "html",   //expect html to be returned
+				success: function () {
+					$( "#showApproved" + itemId).show("slow");
+					$( "#hideRow" + itemId).hide("slow");
+					//alert('approved post');
+				},
+				error: function(){
+					alert('failure at approve post');
+				}
+			});
+		}
+
+		function delete_post($id) {
+
+			var itemId = $id;
+			//alert('this id is: ' + itemId);
+			$.ajax({    //create an ajax request to load_page.php
+				method: "POST",
+				url: "delete_post",
+				data: {_token: "{{ csrf_token() }}",   // MUST PASS TOKEN! or get internal 500 error
+					itemId: itemId,
+				}, //pass device id to show_comments
+				dataType: "html",   //expect html to be returned
+				success: function () {
+					$( "#showDeleted" + itemId).show("slow");
+					$( "#hideRow" + itemId).hide("slow");
+					//alert('deleted post');
+				},
+				error: function(){
+					alert('failure at delete post');
+				}
+			});
+		}
+	</script>
+@endsection
+
+Add a couple posts to the ProfileController to handle the approve_post and delete_post, simple:
+
+public function approve_post(Request $request)
+	{
+		$id = $request->itemId;
+		$item = Item::find($id);
+		$item->approved = 1;
+		$item->save();
+	}
+
+	public function delete_post(Request $request)
+	{
+		$id = $request->itemId;
+		Item::destroy($id);
+	}
+
+===================
+
+At my job, we are upgrading our internal website from using Microsoft Access/vb to visual basic ("vb") with web forms. Of course vb sucks, but sometimes you have to program in languages others are more comfortable with. 
+
+One of the hardest things I got stuck on was the double drop down. I never made a drop down before, but in a business situation it's an absolute must to learn how to program. THere are many situations where you don't want users to enter in the field, because you don't want to do a sql search for the 10 ways to spell something. Ex. Our Walmart customer could be spelled: Walmart, walmart, wal-mart, sams, Sam's Club, Sams Club, SamsClub (Walmart and Sams club are basically the same customer).
+Thus, we have many drop downs like adding a new site, where we need to choose a Customer, ie Walmart, and then the next drop down list (site type: walmart, SamsClub, DC) changes based on the customerName. For the AddSite, we have yet more drop downs for Country and State. StateName drop down list will also have to dynamically change when the CountryName Changes. Of course, this would be easy to do having a complete page refresh, but nobody wants this. Thus, ajax/javascript is required.
+
+Create site, update site, delete site, search/read site = all under "Sites"
+
+Site Table = siteId, customerID, siteTypeID, siteNumber, CountryID, StateID, City, Street, Zip, concurrentUser
+Few notes: SiteId is the databaseID and it is unique, When a new CustomerID is selected, the dropdown box for SiteType is dynamically updated. Same goes for CountryID and StateID. SiteNumber is the customer siteNumber (Ex. Walmart gives each of it's stores store numbers..some are not unique because some are active or dark)
+
+Customer Table* = id, CustomerName, BillingAddress (note: you could have a siteType property here, I do at work, but it leads to a ton of duplication..you get super center, Super-center, etc)
+SiteType Table* = id, SiteType, CustomerID
+Country Table* = id, CountryName, CountryAbbreviation
+State Table* = id, StateName, StateAbbrev, CountryID
+
+* = all tables will use timestamps ( (created_at and updated_at fields)), because at work we have a lot of issues with what is called Optimistic Concurrency (concurrentUser field). This will make more sense later.
+
+After planning this, it is obvious we need to make a bunch of new models: Site, Customer, SiteType, Country, State. All of these new models will be "controlled" by the  SiteController. Thus, at the end we will need to add a new controller.
+
+We will not go over how to make every model, just a couple:
+CLTC>php artisan make:model SiteType
+Model created successfully.
+Created Migration: 2016_09_23_224750_create_sites_table
+
+Go to database->Migrations-> find the new 2016_09_23_224750_create_sites_table.php migrations file and modify it with new fields:
+
+public function up()
+	{
+		Schema::create('sites', function(Blueprint $table)
+		{
+			$table->increments('id');
+			$table->integer('customerID');
+			$table->integer('siteTypeID')->nullable();
+			$table->string('siteNumber,40'); //max length 40, site number can be 2340, SX80002340, etc
+			$table->integer('countryID');
+			$table->integer('stateID');
+			$table->string('city',255);  //max length 255
+			$table->string('street',255);
+			$table->integer('zip');
+			$table->text('notes')->nullable(); //Notes can be very long, use text
+			$table->string('concurrentUser')->nullable();
+			$table->timestamps();
+		});
+	}
+
+Similarly:
+CLTC>php artisan make:model Customer
+
+public function up()
+	{
+		Schema::create('customers', function(Blueprint $table)
+		{
+			$table->increments('id');
+			$table->string('name')->unique();
+			$table->string('BillingAddress')->nullable;
+			$table->timestamps();
+		});
+	}
+
+Interesting find, didn't know this:
+
+CLTC>php artisan make:model SiteType
+
+//Look how it named the table "site_types". Thus, in controller, to get a siteType by id, will use site_type.id
+
+public function up()
+	{
+		Schema::create('site_types', function(Blueprint $table)
+		{
+			$table->increments('id');
+			$table->string('siteType')->unique();
+			$table->integer('customerID');
+			$table->timestamps();
+		});
+	}
+etc, etc, etc. Once all models made, go to command line and type "make sql tables". Just kidding, but why don't they call it something like that? Instead, you just do this, and it creates all the sql tables for you in xamp. Awesome sauce.
+CLTC>php artisan migrate
+
+
+Now lets create a SiteController:
+CLTC>php artisan make:controller SiteController
+
+Now we need some links to our new "Sites" page. Remember, the master page is in resources-> views and is called app.blade.php. Add a link to the sites:
+<ul class="nav navbar-nav">
+	<li><a href="{{ url('/') }}">Home</a></li>
+	<li><a href="{{ url('/adminBlog') }}">NEWS!</a></li>
+	<li><a href="{{ url('/devices') }}">Devices</a></li>
+	<li><a href="{{ url('/phones') }}">Phones</a></li>
+	<li><a href="{{ url('/switches') }}">Switches</a></li>
+	<li><a href="{{ url('/sites') }}">Sites</a></li>
+</ul>
+
+Of course, Laravel will not know what to do with this link unless a route is added. Go to the http folder, and open routes.php. Add a route: 
+
+/*Get home page */
+Route::get('/', 'WelcomeController@index');
+
+Route::get('/sites', 'SiteController@create');
+
+Now we will add a view. Go to resources->views and add a new blade: sites.blade.php
+And in the SiteController.php, call the blade you just made in the index function
+	public function create()
+	{
+		//Sql to load sites coming soon
+
+		return view('sites'); //calls sites.blade.php
+	} 
+
+For now, in the sites page, all we want is a link to add a new site.
+<a href="{{ url('/createSite') }}">Create New Site</a>
+
+Add a new route: Route::get('/createSite', 'SiteController@create');
+
+Go to the controller, and tell it what page to return.
+public function create()
+	{
+		return view('createSite');
+	}
+
+Again, make another page. Go to resources->views and add a new blade: createSite.blade.php
+
+
+This is an actual set up my IT dept has. If the customer is not found, there is a text box right next to it where people can add a new customer name.
+The problem with this is that you have a form within a form. And you cannot have nested forms (there are some browser html5 exceptions). The browser gets confused and has no idea which form you are sending.
+THus we can create a link to another page to add a customer (which in this case is a good idea, since adding a new customer is very rare in most circumstances.
+
+nested form code, also have a picture for this:
+@extends('app')
+
+@section('content')
+
+<div class="container">
+	<div class="row">
+		<div class="col-md-10 col-md-offset-1">
+			<div class="panel panel-default">
+				<div class="panel-heading">Add New Site</div>
+
+				<div class="panel-body">
+					<!-- Display Validation Errors -->
+					@include('common.errors')<!-- this file at resources/views/common/errors.blade.php. -->
+
+
+					<!-- New Site Form -->
+					<form class="form-horizontal" action="/{{ $action}}Site" method="POST" >
+						<!-- when submitted goes to  routes.php and hits, ex: Route::post('/{create || update}Site',
+						'SiteController.. create->store or update->edit');-->
+						<!--!! csrf_field() !!} -->
+						<input type="hidden" name="_token" value="{{ csrf_token() }}">
+
+
+						<div class="form-group">
+							<div class="col-md-10">
+							<label for="title" class="col-md-2 control-label" style="padding-top: 0; padding-bottom: 7px" >
+								Customer: </label>
+
+								<select>
+									<option value="0">-- Choose a Customer --</option>
+									<option value="3">Walmart</option>
+									<option value="55">Costco</option>
+								</select>
+								&nbsp;&nbsp;
+								<a href="{{ url('/addCustomer') }}">Add New Customer</a>
+
+								<form  action="addCustomer" method="POST"  > <!-- goes to routes, Post::addCustomer, sitesController -->
+									<input type="hidden" name="_token" value="{{ csrf_token() }}">
+									<input type="text" name="name" style="width: 200px"
+										   placeholder="Enter New Customer Name">
+									<button type="submit" class="btn btn-success" style="display:inline; padding: 2px 10px;">
+										<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+										Add</button>
+								</form>
+
+										<button type="submit" class="btn btn-success">
+											<span class="glyphicon glyphicon plus" aria-hidden="true"></span>
+											Submit</button>
+
+
+
+						<!-- Submit Button -->
+					</form>
+
+
+So, basically, if you have two buttons within a form, it doesn't matter which one you hit, the whole form will be submitted. We do not want this. How can we get around this? Make a fake button, with say an image (then use css to change the pointer and/or background on hover) Or use plain text like a link. And use javascript onclick function. Ultimately, this is javascript hell, not advisable. But if your customer demanded it, like my boss did, you're stuck doing it.
+
+In conclusion:
+First option, have users go to a new page, "Add Customer". When they are finished, they will have to click on a link to go back to "add Site". Plus side, very easy coding, no javascipt, thus very easy to maintain. When you have an error, the error message is usually very easy to figure out. Bad is two page refreshes.
+
+Second option, use a ton of javacript, like the "add site type". Good is very responsive page, no page refresh. Bad is this is javascript hell. Not easy to maintain. The error messages for making a mistake are not clear, in fact they are terrible. If you even have one word mispelled, you will keep getting the same "internal server 500" error or some other vaugue error. Not to mention, javascipt runs on the client side and could slow their phone/pc/tablet down. Or worse, clients have javascript disabled, and they would not be able to do anything.
+
+Third option, Have a form at the bottom of the page, like "Add Country". Good is very simple to code. Bad or good, is one page refresh. Another problem is that error messages will be at the top of the page.
+
+
+An alternative to the dropdown box, is the datalist. Datalists are the future and are great when you have hundreds of options in the drop down. The really bad part about datalist is that it is not supported in older browsers and safari doesn't support it at all. Thus, after doing some reaserch the best option is to do a datalist/dropdown hybrid.
+
+Datalist:
+Search: <input type="text" list="languages">
+<datalist id="languages">
+	<option value="JavaScript">JavaScript</option>
+	<option value="Haskell">Haskell</option>
+	<option value="Ruby">Ruby</option>
+	<option value="Go">Go</option>
+	<option value="Python">Python</option>
+	<option value="etc">etc</option>
+</datalist>
+
+This does exactly same as above. You don't need to put anything between options
+Search: <input type="text" list="languages">
+<datalist id="languages">
+	<option value="JavaScript"></option>
+	<option value="Haskell"></option>
+	<option value="Ruby"></option>
+	<option value="Go"></option>
+	<option value="Python"></option>
+	<option value="etc"></option>
+</datalist>
+
+Datalist hybrid:
+Choose: <input type="text" list="languages2">
+<label for="languages2">
+  <datalist id="languages2">
+    <select>
+      <option value="JavaScript">JavaScript</option>
+      <option value="Haskell">Haskell</option>
+      <option value="Ruby">Ruby</option>
+      <option value="Go">Go</option>
+      <option value="Python">Python</option>
+      <option value="etc">etc</option>
+    </select>
+  </datalist>
+</label>
+
+With the hybrid, older browsers and safari will ignore the datalist code, and just do a dropdown box. Similarly, in browsers that support datalist, the select will be ignored giving you a dropdown list. Stupid safari.
+
+The datalist also doesn't treat the option like a select box drop down does. See pictures. This is stupid and needs to be changed. Thus, we are forced to get the City name, get it's cityID, and then save that to the DB. Or if city name not found, add it to citiesDB, and then retrieve the ID.
+
+We could also do some javascript, or jquery autocomplete combo box, but that seems like a nightmare. I started on a javascript one, and there is a ton of javascript you would have to do. And this page has enough client side javascript.
+
+Ok, I think the datalist is a good fit for cities. The user can select a city already saved, or simply type a new one.
+In the view, we have:
+
+this does not work:
+City: <input type="text" list="cities">
+									<label for="cities">
+										<datalist id="cities">
+											<select>
+												<span id="hiddenCities"></span>
+
+											</select>
+										</datalist>
+									</label>
+
+Then use ajax to load the options. I think it don't work becaust the list and datalist elements need to load at same time.
+I'll try to load all the code at once.
+That worked. However, Chrome will autocomplete this box. And there is no way to turn it off, without turning off autocomplete, which turns off datalist. FML. However, it does work. People will just have to delete their autocomplete or type in more words:
+
+	//Load cities as a DATALIST
+	public function load_cities(Request $request)
+	{
+		$countryID = $request->countryID;
+		$stateID = $request->stateID;
+
+		$cities = DB::table('cities')
+			->select('cities.*')
+			->where('cities.countryID','=',$countryID)
+			->where('cities.stateID','=',$stateID)
+			->orderby('cities.name', 'DSC')
+			->get();
+
+		$html = '';
+		if ($cities == NULL){
+			$html .= '' . '<option value="-- No Cities Found --"/>';
+		} else {
+			foreach ($cities as $city) {
+				$html .= '' . 'City2: <input type="text" name="citiez" list="citiez"><label for="citiez"><datalist id="citiez"><select>';
+				$html .= '' .  '<option value="' . $city->name .
+					'"></option><option value="Milwaukee"/><option value="Milton"/><option value="Hell" />';
+				$html .= '' . '</select></datalist></label>';
+			}
+		}
+		return $html;
+	}
+====
+Adding a new city. Ajax style.
+Let's say we had a triple drop down, like city. The city is the child of Country and State because you have to select country to get states, and states to get city. If we had a seperate form for add city, we would either have to have the user select the country and state again, or use some javascipt to load the values on a user click, or we can use ajax and pass the values by javascipt DOM.
+
+We run into a huge problem. Since the State drop down is ajax generated, there is no way to get the selected value:
+var stateID = $( "#stateDD").val(); //StateDD generated by ajax, thus this will be undefined
+
+If you look at the "view source" you will see that even though the state drop down list has generated by ajax, in the view source all of the drop down code is missing. Thus, it's value is undefined.
+
+So we can either reload the page or find a trick. The only trick I can think of is to put the stateID inside of an html element's attribute. Ex. If stateID =55, then in the submit button make it's id="55". Then when user clicks submit, we can call the javascript function addCity(this.id). Not ideal. Plus, if you keep doing this, eventually you will run out of attributes. And it's a javascipt knightmare. Guess we will do page reload.
+
+====
+Live search Drop down - javascipt
+The datalist is a pretty cool tool, however it sucks because the value is the text displayed. It's option and value are not the same as a regular drop down. Also, it is not supported in many browsers. Jquery has a live search box. But I decided to use javascipt to make my own. My goal is to make it as simple as possible and as much like the Jquery autocomplete combobox (http://jqueryui.com/autocomplete/#combobox) as possible.
+
+I always start with hard coding, just to test. Started with this:
+<label for="customer"  style="padding-top: 0; padding-bottom: 7px" >
+	<input type="text" id="customerNameInput" name="customerName" required placeholder="Enter Customer Name">
+		<div class="listDD" onclick="put_in_input(this.textContent)">Walmart</div>
+		<div class="listDD" onclick="put_in_input(this.textContent)">Costco</div>
+		<div class="listDD" onclick="put_in_input(this.textContent)">K-Mart</div>
+		<div class="listDD" onclick="put_in_input(this.textContent)">Sears, JCPenny and Company</div>
+	</input>
+</label>
+
+<script type="text/javascript">
+	function put_in_input($text){
+		//alert($text);
+		document.getElementById("customerNameInput").value = $text;
+	}
+</script>
+Css:
+.listDD:hover {
+  cursor: pointer;
+  background-color: #4d4dff;
+  color: white;
+  padding: 0px 7px 0px 2px;
+}
+
+
+====
+Weird error.
+"Unprocessable Entity"
+Had this code:
+$this->validate($request, ['sitetype' => 'required','customerID' => 'required',]);
+Issue is sitetype misspelled, should have been "siteType"
+
+Javascipt error..or jquery
+Kept getting "$ is not defined"
+
+it pointed to this:
+function loadSiteType($customerID) {
+		$("#mustSelectCustomer").hide(); <--error
+		$( "#addNewSiteTypeLink").show(); <--error
+
+Turned out, I was working offline!! doh...tooks hours to figure out. Laravel loads jquery files on the internet.
+
+
+===
+Laravel Unique validation
+Unique is very usefull, but also very confusing. Lets say we have customers: walmart, sams, costco, kmart. 
+
+So in our tables, we want Customer Names to be unique. Customer table has 3 fields: id, name, and billingAddress. So we do this upon storing a new customer:
+
+$this->validate($request, [
+	'name' => 'required|unique:customers|max:255', //"name" must be unique in the customers Table
+	]);
+
+$customer = Customer::create([
+	'name' => $request->name,
+	'billingAddress'=> $request->billingAddress,
+	]);
+
+Note:
+$this->validate($request, [
+	'name' => 'required|unique:customers|max:255', //"name" must be unique in the customers Table..assumes you mean name column
+	//'name' => 'required|unique:customers,name|max:255',   // This does exact same thing as line above
+	//'customerName' => 'required|unique:customers|max:255',   // Error...laravel will look for customerName field
+	////'customerName' => 'required|unique:customers,name|max:255',   // OK..no error, laravel now knows you looking for unique name field
+		]);
+
+For updates, say if someone changes the billing address, this unique rule will break. Thus on update we need to tell the unique rule to not look at a certain customerID, the 3rd and 4th parameters do this
+'name' => 'unique:customers,name,' . $request->customerID . ',customerID'
+
+Unique to customers table, the name field, ignore this customerID in the customerID field/column
+
+
+Simple enough. But at Site_types it gets tricky. Our customers might have the same siteTypes. What if both walmart and costco have supercenters? Only one customer could have that input. In the site_types table, we need to make sure the siteType is unique where the custmerName (id) is Walmart(1).
+
+//Validate
+$this->validate($request, ['siteType' => 'required|unique:site_types,name, null, null,customerID' . $request->customerID . '|max:255', 'customerID' => 'required',
+]);
+
+Note the "null,null" we have no exceptions, then after that we tell it the "where" field and value that needs to be unique. Be sure to CONCATENATE the " . $request->customerID . " else the where clause will be ignored!!
+
+This we have:
+Unique:<tableName>,<fieldName>,<exceptThisValue>,<ExceptThisField>,<WhereThisField>,<IsEqualToThis>
+Kind of weird how they switched the value and field parameter locations in the 3rd to 6th parameters
+unique:accounts,username,null,null,site_id,'.$request->site,
+
+=======
+Adding a seperate Add customer page
+Added customer controller and addCustomer blade. When you use Customer::Create, you will get an error because header file use App\Customer is missing. Then you will get a MassAssignmentException, this means that you haven't made the Customer fields (name and billing address) fillable. Go to the Customer.php model file and make the fields fillable:
+
+<?php namespace App;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Customer extends Model {
+
+	//
+    protected $fillable = ['name','billingAddress'];
+
+
+}
+
+Be sure to make all the other new models: country, state, sitetype, etc fillable too.
+
+=====
+After doing the query, especially a complicated one, it's a good idea to see the array that is returned. An easy way to do this is using print_r. Ex:
+Controller:
+	public function index()
+	{
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*')
+			->orderBy('sites.customerID', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+
+		return view('sites', ['sites' => $sites]);
+	}
+
+View:
+@foreach($sites as $site)
+	<tr>
+	<td>{{ print_r($site)}} </td>
+	</tr>
+@endforeach
+
+When the page is rendered this is displayed:
+ [id] => 17 [customerID] => 1 [siteNumber] => 22 [siteTypeID] => 19 [countryID] => 1 [stateID] => 4 [cityID] => 17 [address] => 8540 greenway Blvd [zip] => 53562 [created_at] => 2016-10-23 23:33:53 [updated_at] => 2016-10-23 23:33:53 [name] => Madison [BillingAddress] => 2400 state st [CountryName] => United States [CountryAbbreviation] => US [StateName] => Wisconsin [StateAbbreviation] => WI
+
+It's strange, I'm getting just about everything, including CountryName, CountryAbbreviation, StateName, etc. But I am missing siteType description. The problem is the countries, site_types and cities tables all have the same field "name". Thus, sites->name is first country->name, then site_type->name, but then finally gets overwritten by city->name. Thus, we have to tell laravel to change the name:
+$sites = DB::table('sites')
+	->join('customers', 'sites.customerID', '=', 'customers.id')
+	->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+	->join('countries', 'sites.countryID', '=', 'countries.id')
+	->join('states', 'sites.stateID', '=', 'states.id')
+	->join('cities', 'sites.cityID', '=', 'cities.id')
+	->select('*','customers.name as customerName', 'site_types.name as siteTypeName', 'cities.name as cityName')
+	->orderBy('sites.customerID', 'ASC')->orderBy('siteNumber', 'ASC')
+	->get();
+
+return view('sites', ['sites' => $sites]);
+
+
+Now we get, this (only slight issue is "name" is redundant, not a big deal, unless you're trying to use it for siteType->name):
+( [id] => 17 [customerID] => 1 [siteNumber] => 22 [siteTypeID] => 19 [countryID] => 1 [stateID] => 4 [cityID] => 17 [address] => 8540 greenway Blvd [zip] => 53562 [created_at] => 2016-10-23 23:33:53 [updated_at] => 2016-10-23 23:33:53 [name] => Madison [BillingAddress] => 2400 state st [CountryName] => United States [CountryAbbreviation] => US [StateName] => Wisconsin [StateAbbreviation] => WI [siteTypeName] => SuperCenter [cityName] => Madison ) 1 
+
+Now, to access data in view, just use angular. Ex. {{$site->cityName }} will display "Madison". Note: you cannot do this: {{ $site->cities->name }} You get this error "Undefined property: stdClass::$cities". Seems intuitive, but it doesn't work. And when you look at the array above, you can definetly see why. Also note the created_at and updated_at, thus are automatically created by laravel because they are in the migrations file: "$table->timestamps();".
+
+
+
+======
+Editing a site
+In the sites view, there is the following code:
+
+<table style=" width: 90%; text-align: center; margin-bottom: 10px; border: solid; border-color: #999999">
+	<tr>
+		<th style=" text-align: center;">{{ $site->customerName }}
+			<span class="badge">{{ $site->siteNumber }}</span>
+		</th>
+	</tr>
+	<tr>
+		<td >
+			{{ $site->siteTypeName }}<br>
+			{{ $site->address }}<br/>
+			{{ $site->cityName }}, {{ $site->StateAbbreviation }} {{$site->zip}}
+			<br>
+			<div class="btn-group" role="group" >
+				<a href="{{ url('editSite/' . $site->id) }}" >
+					<button type="button"  class="btn-xs btn-success">Edit</button>
+				</a>
+				<a href="{{ url('deleteSite/' . $site->id) }}" >
+					<button type="button" class="btn-xs btn-danger">Delete</button>
+				</a>
+			</div>
+
+		</td>
+	</tr>
+</table>
+
+
+The button is a link to the edit site, and we pass in the database id of the site. Ex. <a href="{{ url('editSite/' . $site->id) }}" ></a>. Thus, on page render, if site->id = 13, then this will be rendered: <a href="editSite/13" ></a>
+
+Now we need a route. Go to routes.php
+Route::GET('editSite/{id}', 'SiteController@edit');
+So this will call the function "edit" in the Site Controller, and it passes the id parameter. 
+
+Now comes the decision, should we use the same createSite view blade, or make another page almost exactly the same called editSite. If we have 2 seperate pages, the code is easier to write and troubleshoot. However, if you make a css change in one then you really need to do it in the other. This is a nightmare. Not to mention, if there is a major css change, then you have 2 pages to totally redo. I prefer to just use the same page. It makes the view's code a bit more complicated, but its not that hard.
+
+So lets work on the controller code. We need the site of course, but we also need all the other objects in order to load the drop downs. The $action has two options, "create" and "edit", because I am reusing this page.
+
+public function edit($id)
+{
+	$site = Site::Find($id);
+	$customers = Customer::All();
+	$countries = Country::All();
+	$states = State::All();
+	$cities = City::All();
+	$action = 'Edit';
+	return view('addSite', ['action' => $action, 'site' => $site,'customers' => $customers, 'countries' => $countries,
+		'states' => $states,]);
+}
+
+====
+The edit page
+
+The hardest thing about this edit page is the drop down. Usually editing is simple if it's a text box, but when it's a dynamically created dropdown, it's a bit harder.
+All we have to do, is when the site->customerID is equal to the customerID, then we need to output "selected". The code first checks to see if $site is NULL, this is because in create mode, $site will be NULL. If we didn't have this, we would get an error during create mode. Here is a snipett of the code:
+
+<label>
+Customer:
+<select required name="customerID" id="customerDD" onchange="loadSiteType(this.value)">
+	<option value="">-- Choose a Customer --</option>
+	@foreach($customers as $customer)
+		<option value="{{$customer->id}}"
+			@if($site != '')
+				@if ($site->customerID == $customer->id)
+					selected
+				@endif
+			@endif
+		>
+			{{$customer->name}}
+		</option>
+	@endforeach
+</select>
+
+Wish there was a better solution. I first looked at angular, but it won't do conditional statements. This seems to be the easiest.
+
+Next is the siteType Drop down. This is a nightmare because it is dynamically loaded.
+
+
+======
+Modals - Modals are pretty cool. They are like a pop-up. And you can put the code for them at the very bottom of the page, but it will pop up wherever the button for the modal is. Thus, you can have a fake form in a form. There are basically 2 ways to use them when adding a field to the database. You can put a form in them. Or use ajax.
+
+Form:
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header" style="background-color: #2e6da4; color: white">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title text-center">Add New State</h4>
+			</div>
+			<div class="modal-body text-center">
+				<form class="form-horizontal" action="/add_new_state" method="POST" >
+					<input type="hidden" name="_token" value="{{ csrf_token() }}">
+					<label for="countryID2">Country: </label>
+					<select required name="countryID2" id="countryID2" >
+						<option value="">-- Choose a Country --</option> <!-- NOTE: for required, value must be "" -->
+						@foreach($countries as $country)
+							<option value="{{$country->id}}">
+								{{$country->CountryName}}
+							</option>
+						@endforeach
+					</select>
+					<br/>
+					<label for="stateName"> State Name:</label>
+					<input type="text" id="stateName" name="stateName" required placeholder="Enter State Name"/>
+					<br/>
+						<label for="stateAbbreviation"> Abbreviation:</label>
+							<input type="text" autocomplete="off" id="stateAbbreviation" name="stateAbbreviation" required placeholder="Enter Abbreviation" />
+
+					<br/>
+
+					<button class="btn btn-success">
+							<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+							Submit</button>
+					</form>
+
+			</div>
+
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+Now, if you use it as a form, you get to use bootstrap's "required" which is really nice. Also, after submitting the form, the modal closes automatically and any backend errors are displayed at the top of the page. There is one huge issue though. After submitting the form, the whole page goes to the post, and all user input (except what is in the modal form) is lost. Thus, the user has to start filling out the first form all over again.
+
+So, we can also use ajax:
+<!-- Modal -->
+<div id="myModal" class="modal fade" role="dialog">
+	<div class="modal-dialog">
+
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header" style="background-color: #2e6da4; color: white">
+				<button type="button" class="close" data-dismiss="modal">&times;</button>
+				<h4 class="modal-title text-center">Add New State</h4>
+			</div>
+			<div class="modal-body text-center">
+					<h2 id="hiddenStateAddedMessage" class="text-success" style="display: none;">New State Added!!</h2>
+					<h3 id="newStateFailed" class="text-danger" style="display: none;">
+						New State Name and/or Abbreviation already exists.</h3>
+					<h3 id="failedValidation" class="text-danger" style="display: none;"></h3>
+				
+					<label for="countryID2">Country: </label>
+					<select required name="countryID2" id="countryID2" >
+						<option value="">-- Choose a Country --</option> <!-- NOTE: for required, value must be "" -->
+						@foreach($countries as $country)
+							<option value="{{$country->id}}">
+								{{$country->CountryName}}
+							</option>
+						@endforeach
+					</select>
+					<br/>
+					<label for="stateName"> State Name:</label>
+					<input type="text" id="stateName" name="stateName" required placeholder="Enter State Name"/>
+					<br/>
+						<label for="stateAbbreviation"> Abbreviation:</label>
+							<input type="text" autocomplete="off" id="stateAbbreviation" name="stateAbbreviation" required placeholder="Enter Abbreviation" />
+
+					<br/>
+
+					<button onclick="submitNewState()" class="btn btn-success">
+							<span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+							Submit</button>
+					</form>
+
+			</div>
+
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+Javascipt
+function submitNewState(){
+	var countryID = $( "#countryID2").val(); //get countryID selected value from Modal
+	var stateName = $( "#stateName").val();
+	var stateAbbreviation = $( "#stateAbbreviation").val();
+	//alert("countryID:" + countryID + " stateNmae: " + stateName + " Abbrev: " + stateAbbreviation);
+	$("#newStateFailed").hide();
+	$("#failedValidation").hide();
+	if (!countryID ) {
+		$("#failedValidation").show();
+		document.getElementById("failedValidation").innerHTML = "Please select a country.";
+	} else if(!stateName){
+		$("#failedValidation").show();
+		document.getElementById("failedValidation").innerHTML = "Please enter a State Name.";
+	} else if(!stateAbbreviation){
+		$("#failedValidation").show();
+		document.getElementById("failedValidation").innerHTML = "Please enter an Abbreviation.";
+	}
+
+	else{
+		$.ajax({    //create an ajax request to load_page.php
+			method: "POST",
+			url: "add_new_state", //Goes to routes.php, and to ajaxController, Route::POST('load_site_types', 'AjaxControllerATload_site_types');
+			data: {_token: "{{ csrf_token() }}",   // MUST PASS TOKEN! or get internal 500 error
+				countryID: countryID, stateName: stateName, stateAbbreviation: stateAbbreviation,
+			},
+			dataType: "html",   //expect html to be returned
+			success: function (data) {
+				//alert('success at new state added');
+				loadStates(countryID);
+				document.getElementById("countryID2").value = "";
+				document.getElementById("stateName").value = "";
+				document.getElementById("stateAbbreviation").value = ""; //Clear input text box
+				$("#hiddenStateAddedMessage").show();
+
+				//$("#states").html(data);//load span element "states" with new states drop down
+				//alert(data);
+			},
+			error: function(){
+				//if we get here, validation failed
+				$("#newStateFailed").show();
+				alert('New State Name and/or Abbreviation already exists.');
+			}
+		});
+	}
+
+So, the nice thing about ajax, is that we get a responsive page, but there is a ton more code. We have to show and hide things to give good user feedback. We have to manually validate. And if there is a back end error, then we have to give a general error 'New State Name and/or Abbreviation already exists.' Which may or may not be true, it could be broken code, or like in this case, if someone enters a 3 letter abbreviation, they will get the same incorrect error message. One thing it is possible to do, is add even more javascript, to check the database. Thus, we could use "onblur()" after the stateName or stateAbbreviation is entered to check the data base for duplicates and immediatly give the user a warning. I'm not going to write this code, since I already wrote the exact same code for "siteNumber" duplication check. 
+	Also note the ajax code "loadStates(countryID);" I'm reusing javascript code to delete and reload the states drop down.  So that when the user closes the modal, the new state will be in there. Fancy!
+
+Finally, the code behind is the same, I won't show the route, it's assumed you know it by now:
+
+Controller code:
+public function add_new_state(Request $request)
+	{
+		$this->validate($request, [
+			'countryID2' => 'required',
+			'stateName' => 'required|unique:States,StateName,NULL,NULL,countryID,' . $request->countryID . '|max:55',
+			'stateAbbreviation' => 'required|unique:States,StateAbbreviation,NULL,NULL,countryID,' . $request->countryID .'|max:2',
+		]);
+
+		//Add to table
+		State::create([
+			'countryID' => $request->countryID2,
+			'StateName' => $request->stateName,
+			'StateAbbreviation' => $request->stateAbbreviation
+		]);
+
+	}
+
+Remember, the stateName validation means: 'required' = cannot be Null. "unique:States,StateName" = unique to the States table, to the StateName field. "NULL, NULL" means we are not ignoring anything. "countryID,' . $request->countryID" = the StateName must be unique where the CountryID field is equal to request->CountryID (ie. we can have Ohio in US and Europe, but we cannot have 2 Ohio's in US). Obviously, if you are using the Modal as a form, you will need a "return view" or "redirect".
+====
+Using "onblur()" with ajax. After a user enters a site number, ajax will be used to see if the site number is already taken. If it is, it will return an error message and clear the site number input box. The site number is unique to the customer. IE both walmart and costco can have a site number =25. Remember, site number is the number assigned by walmart/costco, it is not the id.
+
+In the view, we have 
+<label for="siteNumber" > Site Number:</label>
+<input type="text" onblur="checkSiteNumber(this.value)" id="siteNumber" 
+	name="siteNumber" required placeholder="Enter Site Number"
+<span id="hiddenSiteNumberError" ></span>
+
+Ajax/javascript
+<script type="text/javascript">
+function checkSiteNumber($siteNumber){
+	var siteNumber = $siteNumber; //get customerID selected value
+	var customerID = $( "#customerDD").val(); //get customerID selected value
+//		alert("siteNumber: class=" + siteNumber + "custID: " + customerID);
+
+	$( "#hiddenSiteNumberError").hide();
+	$.ajax({    //create an ajax request to load_page.php
+		method: "POST",
+		url: "check_site_number", //Goes to routes.php, and to ajaxController, Route::POST('load_site_types', 'AjaxControllerATload_site_types');
+		data: {_token: "{{ csrf_token() }}",   // MUST PASS TOKEN! or get internal 500 error
+			siteNumber: siteNumber, customerID: customerID,
+		},
+		dataType: "html",   //expect html to be returned
+		success: function (data) {
+			alert('success at site number');
+			//if siteNumber looks good = "Site Number Available", else returns longer error message
+			$( "#hiddenSiteNumberError").show();
+			$("#hiddenSiteNumberError").html(data);
+		},
+		error: function(){
+			alert('failed site number check');
+			//if we get here, validation failed
+			$( "#hiddenSiteNumberError").show();
+			var html =  '<span style="background-color: yellow" class="text-danger">Site Number <mark>' + siteNumber + '</mark> already exists!';
+			document.getElementById("hiddenSiteNumberError").innerHTML = html;
+			document.getElementById("siteNumber").value = "";
+		}
+	});
+
+
+</script>
+
+Routes.php:
+Route::POST('check_site_number', 'SiteController@check_site_number');
+
+Controller
+public function check_site_number(Request $request)
+	{
+
+		$this->validate($request, [
+			'customerID' => 'required',
+			'siteNumber' => 'required|unique:Sites,siteNumber,NULL,NULL,customerID,' . $request->customerID . '|max:55',
+		]);
+
+		//if we get this far, siteNumber doesn't already exist
+		$html = '' . '<span class="text-success">Site Number Available!</span>';
+		return $html;
+	}
+
+=====
+Updating a site
+Since the same form is being used for create and edit, there is a ton of @if($action == "Edit") and @endif. Obviously, when it's edit time, we need to select values in drop downs, and load input boxes. Whereas when in create mode, you don't preload anything. The code for the view is below. This is a choice, it's possible to make seperate create/edit pages, then you don't have to deal with the @if's. However, if you're html changes, you end up trying to make both pages look the same, which can cause a huge headache.
+
+The route is simple. Remember on the controller side "edit" gets the object, "update" updates the object:
+Route::POST('EditSite/{id}', 'SiteController@update');
+
+The controller function "update" is the hard part. During update we not only have to check if the site number already exists, but we also have to let laravel know to ignore this site's siteNumber.
+We do this with the following validate code:
+'siteNumber' => 'required|unique:sites,siteNumber,' . $request->siteID . ',id,customerID,' . $request->customerID,
+
+This says siteNumber must be unique in the sites table, siteNumber column, ignore the record request->siteID for id column, where customerID equeals request->customerID.  
+
+public function update(Request $request)
+{
+	//
+	$this->validate($request, [
+		'customerID'=> 'required',
+		'siteNumber' => 'required|unique:sites,siteNumber,' . $request->siteID . ',id,customerID,' . $request->customerID,
+		'siteTypeID' => 'required',
+		'countryID' => 'required',
+		'stateID' => 'required',
+		'cityName' => 'required',
+		'address' => 'required',
+		'zip' => 'required',
+	]);
+
+	//Get cityName, find the id, OR add city to DB, then get the new id
+	$cityName = $request->cityName;
+	//$cityName = "Madison";
+	$cityID = '';
+	//Get id of city
+	$city = DB::table('cities')
+		->select('cities.id')
+		->where('cities.name', '=', $cityName)
+		->where('cities.stateID', '=', $request->stateID)
+		->where('cities.countryID', '=', $request->countryID)
+		->first();
+	if ($city != ''){$cityID = $city->id;}
+	//if city not found, ie Null, create a new city and assign the cityID
+	if($cityID == ''){
+		$newCity = City::create([
+			'name' => $cityName,
+			'countryID' => $request->countryID,
+			'stateID' => $request->stateID,
+		]);
+		$cityID = $newCity->id;
+	}
+
+	//Everything is validated, get Site and update it
+	$site = Site::find($request->siteID);
+	$site->customerID = $request->customerID;
+	$site->siteNumber = $request->siteNumber;
+	$site->siteTypeID = $request->siteTypeID;
+	$site->countryID = $request->countryID;
+	$site->stateID = $request->stateID;
+	$site->cityID = $cityID;
+	$site->address = $request->address;
+	$site->zip = $request->zip;
+	$site->save();
+
+	return redirect()->action('SiteController@index');
+
+}
+=====
+
+Displaying Sites
+Route:
+Route::get('/sites', 'SiteController@index');
+
+Controller:
+public function index()
+{
+	$sites = DB::table('sites')
+		->join('customers', 'sites.customerID', '=', 'customers.id')
+		->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+		->join('countries', 'sites.countryID', '=', 'countries.id')
+		->join('states', 'sites.stateID', '=', 'states.id')
+		->join('cities', 'sites.cityID', '=', 'cities.id')
+		->select('*', 'customers.name as customerName','countries.CountryName as countryName',
+			'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+		->orderBy('sites.customerID', 'ASC')->orderBy('siteNumber', 'ASC')
+		->get();
+
+	return view('sites', ['sites' => $sites]);
+
+}
+View:
+@foreach($sites as $site)
+						<div class="col-md-3" >
+							<table style=" width: 90%; text-align: center; margin-bottom: 10px; border: solid; border-color: #999999">
+								<tr>
+									<th style=" text-align: center; color: white">
+										{{ $site->customerName }}<br>
+										<span style=" text-align: center;" class="badge">{{ $site->siteNumber }}</span>
+									</th>
+								</tr>
+								<tr>
+									<td >
+										{{ $site->siteTypeName }}<br>
+										{{ $site->address }}<br/>
+										{{ $site->cityName }}, {{ $site->StateAbbreviation }} {{$site->zip}}
+										<br>
+										{{ $site->countryName }}<br>
+										<div class="btn-group" role="group" >
+											<a href="{{ url('editSite/' . $site->siteID) }}" >
+												<button type="button"  class="btn-xs btn-success">Edit</button>
+											</a>
+											<a href="{{ url('deleteSite/' . $site->siteID) }}" >
+												<button type="button" class="btn-xs btn-danger">Delete</button>
+											</a>
+										</div>
+
+									</td>
+								</tr>
+							</table>
+						</div>
+					@endforeach
+===
+//I wanted to make the filter ajax, instead of a post. WOW, what a nightmare. With 4 filter options,
+// there are 16 different sql queries. When any one of the filter changes, it calls the same ajax function 
+filterSites()
+View:
+
+Ajax:
+
+Controller code:
+//So how do you think of all the different options?
+//Answer: think binary. 0000, 0001, 0010, 0011, 0100, etc (in decimal this is 0,1,2,3,4 )
+// Thus == '', or where input is Null, it's a zero, else it is a 1.
+//Thus 0000 = if ( $customerID == '' && $siteNumber == '' && $countryID == '' && $stateID == '')
+//Thus 0001 = if ( $customerID == '' && $siteNumber == '' && $countryID == '' && $stateID != '')
+//Thus 0010 = if if ( $customerID == '' && $siteNumber == '' && $countryID != '' && $stateID == '')
+/*     CRAZY CODE!!!!!!
+if     ( $customerID == '' && $siteNumber == '' && $countryID == '' && $stateID == '')
+else if( $customerID == '' && $siteNumber == '' && $countryID == '' && $stateID != '')
+else if( $customerID == '' && $siteNumber == '' && $countryID != '' && $stateID == '')
+else if( $customerID == '' && $siteNumber == '' && $countryID != '' && $stateID != '')
+else if( $customerID == '' && $siteNumber != '' && $countryID == '' && $stateID == '')
+else if( $customerID == '' && $siteNumber != '' && $countryID == '' && $stateID != '')
+else if( $customerID == '' && $siteNumber != '' && $countryID != '' && $stateID == '')
+else if( $customerID == '' && $siteNumber != '' && $countryID != '' && $stateID != '')
+else if( $customerID != '' && $siteNumber == '' && $countryID == '' && $stateID == '')
+else if( $customerID != '' && $siteNumber == '' && $countryID == '' && $stateID != '')
+else if( $customerID != '' && $siteNumber == '' && $countryID != '' && $stateID == '')
+else if( $customerID != '' && $siteNumber == '' && $countryID != '' && $stateID != '')
+else if( $customerID != '' && $siteNumber != '' && $countryID == '' && $stateID == '')
+else if( $customerID != '' && $siteNumber != '' && $countryID == '' && $stateID != '')
+else if( $customerID != '' && $siteNumber != '' && $countryID != '' && $stateID == '')
+else if( $customerID != '' && $siteNumber != '' && $countryID != '' && $stateID != '')
+
+	
+Won't bore you with all the queries, but here is the first and the last
+if     ( $customerID == '' && $siteNumber == '' && $countryID == '' && $stateID == ''){
+	$sites = Site::all();
+}
+else if( $customerID != '' && $siteNumber != '' && $countryID != '' && $stateID != '')
+{
+	$sites = DB::table('sites')
+		->join('customers', 'sites.customerID', '=', 'customers.id')
+		->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+		->join('countries', 'sites.countryID', '=', 'countries.id')
+		->join('states', 'sites.stateID', '=', 'states.id')
+		->join('cities', 'sites.cityID', '=', 'cities.id')
+		->select('*', 'customers.name as customerName','countries.CountryName as countryName',
+			'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+		->where('customerID','=',$customerID)
+		->where('siteNumber','=',$siteNumber)
+		->where('countryID','=',$countryID)
+		->where('stateID','=',$stateID)
+		->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+		->get();
+}
+
+Turns out there are a ton of errors in this code. Can you spot the errors?
+
+1. Site::all() returns customerID, countryID, etc. But not the names of the countries. You must have a join:
+Answer
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName','countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+
+Second huge error is there are a ton of ambigous columns
+->where('customerID','=',$customerID)
+changes to: ->where('sites.customerID','=',$customerID)
+
+Thidly my where clause for site number was wrong, I've never used a "like" query before:
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName','countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.customerID','=',$customerID)
+			->where('sites.siteNumber','like',  '%' . $siteNumber . '%')
+			->where('sites.countryID','=',$countryID)
+			->where('sites.stateID','=',$stateID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+
+So, what's the key to debugging this code? Especially, where you have about a hundred lines of sql?
+Answer: It would be nearly impossible to find the error with ajax. So, I put my filter within a form. THis helps to give good errors.
+
+Finaly
+View filter:
+<span style="color: white; font-size: large">Filter:</span>
+	<select name="customerDDfilter" id="customerDDfilter" onchange="filterSites()">
+		<option value="">-- Choose a Customer --</option> <!-- NOTE: for required, value must be "" -->
+		@foreach($customers as $customer)
+			<option value="{{$customer->id}}">
+				{{$customer->name}}
+			</option>
+		@endforeach
+	</select>
+
+	<span style="color: white"> Site Number: </span>
+		<input type="text" style="width: 50px" name="siteNumberFilter" id="siteNumberFilter" onkeyup="filterSites()" />
+
+	<select name="countryDDfilter" id="countryDDfilter" onchange="loadStates(this.value)" >
+		<option value="">-- Choose a Country --</option> <!-- NOTE: for required, value must be "" -->
+		@foreach($countries as $country)
+			<option value="{{$country->id}}">
+				{{$country->CountryName}}
+			</option>
+		@endforeach
+	</select>
+	<span id="hiddenStatesDD"></span>
+	<select id="stateDDfilter" >
+		<option value="">-- Choose a State --</option> <!-- NOTE: for required, value must be "" -->
+	</select> &nbsp;&nbsp;
+	<span style="color: white; font-size: large" class="glyphicon glyphicon-filter"
+		  data-toggle="tooltip" title="Sumbit Filter!!" onclick="filterSites()" aria-hidden="true"></span>
+</div>
+
+	function filterSites(){
+		var customerID = $("#customerDDfilter").val();
+		var siteNumber = $("#siteNumberFilter").val();
+		var countryID = $("#countryDDfilter").val();
+		var	stateID = $("#stateDD").val();
+		//alert ('customerid: ' + customerID + ' siteNumber: ' + siteNumber + ' countryid: ' + countryID + ' stateID: ' + stateID);
+		$.ajax({    //create an ajax request to load_page.php
+			method: "POST",
+			url: "filter_sites", //Goes to routes.php, and to ajaxController, Route::POST('load_site_types', 'AjaxControllerATload_site_types');
+			data: {_token: "{{ csrf_token() }}",   // MUST PASS TOKEN! or get internal 500 error
+				customerID: customerID, siteNumber: siteNumber,countryID: countryID, stateID: stateID,
+			},
+			dataType: "html",   //expect html to be returned
+			success: function (data) {
+				//alert('success');
+				$("#sites").hide();
+				$("#ajaxSites").html(data);
+				//alert(data);
+			},
+			error: function(){
+				alert('failed to filter customers');
+			}
+		});
+	}
+
+//load states JS omitted..done before
+</script>
+
+Routes..simple..omitted.
+
+The controller code:
+public function filter_sites(Request $request)
+{
+	$customerID = $request->customerID;
+	$siteNumber = $request->siteNumber;
+	$countryID = $request->countryID;
+	$stateID = $request->stateID;
+
+
+	if     ( $customerID == '' && $siteNumber == '' && $countryID == '' && $stateID == ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID == '' && $siteNumber == '' && $countryID == '' && $stateID != ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.stateID', '=', $stateID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID == '' && $siteNumber == '' && $countryID != '' && $stateID == ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.countryID', '=', $countryID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID == '' && $siteNumber == '' && $countryID != '' && $stateID != ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.countryID', '=', $countryID)
+			->where('sites.stateID', '=', $stateID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID == '' && $siteNumber != '' && $countryID == '' && $stateID == ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.siteNumber', 'like', '%' . $siteNumber . '%')
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID == '' && $siteNumber != '' && $countryID == '' && $stateID != ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.siteNumber', 'like', '%' . $siteNumber . '%')
+			->where('sites.stateID', '=', $stateID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID == '' && $siteNumber != '' && $countryID != '' && $stateID == ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.siteNumber', 'like', '%' . $siteNumber . '%')
+			->where('sites.countryID', '=', $countryID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID == '' && $siteNumber != '' && $countryID != '' && $stateID != ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.siteNumber', 'like', '%' . $siteNumber . '%')
+			->where('sites.countryID', '=', $countryID)
+			->where('sites.stateID', '=', $stateID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID != '' && $siteNumber == '' && $countryID == '' && $stateID == ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.customerID', '=', $customerID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID != '' && $siteNumber == '' && $countryID == '' && $stateID != ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.customerID', '=', $customerID)
+			->where('sites.stateID', '=', $stateID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID != '' && $siteNumber == '' && $countryID != '' && $stateID == ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.customerID', '=', $customerID)
+			->where('sites.countryID', '=', $countryID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID != '' && $siteNumber == '' && $countryID != '' && $stateID != ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.customerID', '=', $customerID)
+			->where('sites.countryID', '=', $countryID)
+			->where('sites.stateID', '=', $stateID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID != '' && $siteNumber != '' && $countryID == '' && $stateID == ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.customerID', '=', $customerID)
+			->where('sites.siteNumber', 'like', '%' . $siteNumber . '%')
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID != '' && $siteNumber != '' && $countryID == '' && $stateID != ''){
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.customerID', '=', $customerID)
+			->where('sites.siteNumber', 'like', '%' . $siteNumber . '%')
+			->where('sites.stateID', '=', $stateID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID != '' && $siteNumber != '' && $countryID != '' && $stateID == '') {
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.customerID', '=', $customerID)
+			->where('sites.siteNumber', 'like', '%' . $siteNumber . '%')
+			->where('sites.countryID', '=', $countryID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	}
+	else if( $customerID != '' && $siteNumber != '' && $countryID != '' && $stateID != '')
+	{
+		$sites = DB::table('sites')
+			->join('customers', 'sites.customerID', '=', 'customers.id')
+			->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+			->join('countries', 'sites.countryID', '=', 'countries.id')
+			->join('states', 'sites.stateID', '=', 'states.id')
+			->join('cities', 'sites.cityID', '=', 'cities.id')
+			->select('*', 'customers.name as customerName', 'countries.CountryName as countryName',
+				'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+			->where('sites.customerID', '=', $customerID)
+			->where('sites.siteNumber', 'like', '%' . $siteNumber . '%')
+			->where('sites.countryID', '=', $countryID)
+			->where('sites.stateID', '=', $stateID)
+			->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+			->get();
+	} else {
+		$html = 'Error';
+		return $html;
+	}
+
+//I wanted to make the filter ajax, instead of a post. WOW, what a nightmare. With 4 filter options,
+// there are 16 different sql queries.
+//So how do you think of all the different options?
+//Answer: think binary. 0000, 0001, 0010, 0011, 0100, etc (in decimal this is 0,1,2,3,4 )
+// Thus == '', or where input is Null, it's a zero, else it is a 1.
+//Thus 0000 = if ( $customerID == '' && $siteNumber == '' && $countryID == '' && $stateID == '')
+//Thus 0001 = if ( $customerID == '' && $siteNumber == '' && $countryID == '' && $stateID != '')
+//Thus 0010 = if if ( $customerID == '' && $siteNumber == '' && $countryID != '' && $stateID == '')
+/*     CRAZY CODE!!!!!!
+if     ( $customerID == '' && $siteNumber == '' && $countryID == '' && $stateID == '')
+else if( $customerID == '' && $siteNumber == '' && $countryID == '' && $stateID != '')
+else if( $customerID == '' && $siteNumber == '' && $countryID != '' && $stateID == '')
+else if( $customerID == '' && $siteNumber == '' && $countryID != '' && $stateID != '')
+else if( $customerID == '' && $siteNumber != '' && $countryID == '' && $stateID == '')
+else if( $customerID == '' && $siteNumber != '' && $countryID == '' && $stateID != '')
+else if( $customerID == '' && $siteNumber != '' && $countryID != '' && $stateID == '')
+else if( $customerID == '' && $siteNumber != '' && $countryID != '' && $stateID != '')
+else if( $customerID != '' && $siteNumber == '' && $countryID == '' && $stateID == '')
+else if( $customerID != '' && $siteNumber == '' && $countryID == '' && $stateID != '')
+else if( $customerID != '' && $siteNumber == '' && $countryID != '' && $stateID == '')
+else if( $customerID != '' && $siteNumber == '' && $countryID != '' && $stateID != '')
+else if( $customerID != '' && $siteNumber != '' && $countryID == '' && $stateID == '')
+else if( $customerID != '' && $siteNumber != '' && $countryID == '' && $stateID != '')
+else if( $customerID != '' && $siteNumber != '' && $countryID != '' && $stateID == '')
+else if( $customerID != '' && $siteNumber != '' && $countryID != '' && $stateID != '')
+
+
+Won't bore you with all the queries, but here is the first and the last
+if     ( $customerID == '' && $siteNumber == '' && $countryID == '' && $stateID == ''){
+$sites = Site::all();
+}
+else if( $customerID != '' && $siteNumber != '' && $countryID != '' && $stateID != '')
+{
+$sites = DB::table('sites')
+	->join('customers', 'sites.customerID', '=', 'customers.id')
+	->join('site_types', 'sites.siteTypeID', '=', 'site_types.id')
+	->join('countries', 'sites.countryID', '=', 'countries.id')
+	->join('states', 'sites.stateID', '=', 'states.id')
+	->join('cities', 'sites.cityID', '=', 'cities.id')
+	->select('*', 'customers.name as customerName','countries.CountryName as countryName',
+		'sites.id as siteID', 'site_types.name as siteTypeName', 'cities.name as cityName')
+	->where('customerID','=',$customerID)
+	->where('siteNumber','=',$siteNumber)
+	->where('countryID','=',$countryID)
+	->where('stateID','=',$stateID)
+	->orderBy('customers.name', 'ASC')->orderBy('siteNumber', 'ASC')
+	->get();
+}
+
+						/*
+	 *
+	 */
+
+	$html = '';
+	if ($sites != NULL){
+		foreach( $sites as $site){
+			$html .= '' . '<div class="col-md-3" >
+							<table style=" width: 90%; text-align: center; margin-bottom: 10px; border: solid; border-color: #999999">
+								<tr>
+									<th style=" text-align: center; color: white">' .
+										 $site->customerName  . '<br>' .
+										'<span style=" text-align: center;" class="badge"> ' . $site->siteNumber . '</span>' .
+									'</th>
+								</tr>
+								<tr>
+									<td >' .
+										$site->siteTypeName . '<br>' .
+										 $site->address . '<br>' .
+										 $site->cityName . ', ' . $site->StateAbbreviation .  $site->zip . '<br>' .
+										 $site->countryName . '<br>' .
+										'<div class="btn-group" role="group" >
+											<a href="editSite/' . $site->siteID . '" >
+												<button type="button"  class="btn-xs btn-success">Edit</button>
+											</a>
+											<a href="deleteSite/' . $site->siteID . '" >
+												<button type="button" class="btn-xs btn-danger">Delete</button>
+											</a>
+										</div>
+
+									</td>
+								</tr>
+							</table>
+						</div>';
+		}
+	} else { $html = 'No sites found';}
+	return $html;
+}
+
+
+
+====
+//artisan commmands
+php artisan serve
+php artisan make:controller AjaxController
+php artisan make:model Comment
+php artisan migrate
+
+
+//helpfull cmds
+Site: {{print_r($site)}}<br/>
+City:  {{print_r($cityName)}}

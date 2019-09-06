@@ -1,0 +1,609 @@
+﻿@model aspNETfirstProject.ViewModels.CreateSiteViewModel
+
+<style type="text/css">
+    .float-left {
+        float: left;
+    }
+    #HiddenMessage {
+    color:red;
+    font-size:large;
+    padding-bottom: 10px;
+    text-align: center;
+    
+    }
+</style>
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create New Site</h2>
+
+@using (Html.BeginForm()) 
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="form-group">
+            @Html.LabelFor(m => m.CustomerID, "Customer", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(m => m.CustomerID, Model.Customers, "-- Select A Customer --")
+                @Html.ValidationMessageFor(m => m.CustomerID, "", new { @class = "text-danger" })
+                <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#myModal"> Add New Customer </button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.SiteTypeID, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("SiteType", new SelectList(string.Empty, "Value", "Text"), "Select a Site Type...", new {@id="SiteTypeID",Name= "SiteTypeID" })
+                @Html.ValidationMessageFor(model => model.SiteTypes, "", new { @class = "text-danger" })
+                <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#SiteTypeModal"> Add New Site Type </button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.SiteNumber, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <input type="text" onblur="CheckSiteNumber(this.value)" id="SiteNumber" name="SiteNumber" class="form-control" placeholder="Enter Site Number" />
+                <span id="HiddenSiteNumberMessage"></span>
+                @Html.ValidationMessageFor(model => model.SiteNumber, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        @*
+            <div class="form-group">
+                @Html.LabelFor(model => model.CountryID, "Country", new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.DropDownListFor(m => m.CountryID, Model.Countries, "-- Select Country --")
+                    @Html.ValidationMessageFor(model => model.CountryID, "", new { @class = "text-danger" }) &nbsp; &nbsp;
+                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#CountryModal"> Add Country </button>
+                </div>
+            </div>
+        *@
+        <div class="form-group">
+            @Html.LabelFor(model => model.CountryID, "Country", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <select required name="CountryID" id="CountryDD" onchange="LoadStates(this.value)">
+                    <option value="">-- Choose a Country --</option>
+                    @foreach (var Country in Model.Countries)
+                    {
+                        <option value="@Country.Value">  @Country.Text </option>
+                    }
+                </select>
+                @Html.ValidationMessageFor(model => model.CountryID, "", new { @class = "text-danger" }) &nbsp; &nbsp;
+                <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#CountryModal"> Add Country </button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.StateID, "State", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("States", new SelectList(string.Empty, "Value", "Text"), "-- Select a State --", new { id="StateID", Name = "StateID" })
+                @Html.ValidationMessageFor(model => model.States, "", new { @class = "text-danger" })
+                <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#StateModal"> Add State </button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.City, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.City, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.City, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Address, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Address, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Address, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Zip, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Zip, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Zip, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-success" />
+            </div>
+        </div>
+
+        <div>
+            @Html.ActionLink("Back to List", "Index")
+        </div>
+    </div>
+} 
+<!-- END ADD SITE FORM -->      
+
+        <!-- Add Customer Modal -->
+        <div id="myModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color: #2e6da4; color: white">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title text-center">Add New Customer...Full Page Reload</h4>
+                    </div>
+                    <div class="modal-body text-centers">
+                        @using (Html.BeginForm("AddCustomer", "Sites"))
+                            {<div class="form-horizontal">
+                                @Html.AntiForgeryToken()
+                                <div class="form-groupl">
+                                    <div id="HiddenCustomerMessage"></div>
+                                    <label class="col-md-4" style="text-align:right">
+                                        Customer:
+                                    </label>
+                                    <input class="col-md-8" style="margin-bottom:10px;" type="text" id="Name" name="Name" required placeholder="Enter Customer Name..." />
+
+                                    <br />
+                                    <label class="col-md-4" style="text-align:right"> Billing Address:</label>
+                                    <input type="text" class="col-md-7" autocomplete="off" name="BillingAddress" required placeholder="Enter Address.." />
+                                    <br />
+
+                                </div>
+                                <br><br>
+
+                                <div class="form-group">
+                                    <div class="col-md-offset-4 col-md-8">
+                                        <input type="submit" value="Add" class="btn btn-success" />
+                                    </div>
+                                </div>
+                            </div>
+                        } <!-- End form -->
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add SiteType Modal -->
+        <div id="SiteTypeModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color: #2e6da4; color: white">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title text-center">Add New Site Type...ajax</h4>
+                    </div>
+                    <div class="modal-body text-centers">
+                        <div class="form-horizontal">
+                            <div class="form-group" >
+                                <div id="HiddenMessage"></div>
+                                <label class="col-md-4" style="text-align:right">
+                                    Customer:
+                                </label>
+                                @Html.DropDownListFor(m => m.CustomerID, Model.Customers, "-- Select A Customer --", new { @id = "CustomerID2" } )
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-4" style="text-align:right">Site Type:</label>
+                                <input type="text" class="col-md-8" onblur="CheckNewSiteType(this.value)" autocomplete="off" id="SiteTypeName" required placeholder="Enter Site Type.." />
+                                <br />
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-offset-4 col-md-8">
+                                    <button onclick="SubmitSiteType()" class="btn btn-success"> Submit </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Country Modal -->
+        <div id="CountryModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color: #2e6da4; color: white">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title text-center">Add Country</h4>
+                    </div>
+                    <div class="modal-body text-centers">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <div id="HiddenCountryMessage"></div>
+                                <label class="col-md-4" style="text-align:right">Country Name:</label>
+                                <input type="text" class="col-md-8" autocomplete="off" id="CountryName" required placeholder="Enter Name.." />
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-4" style="text-align:right">Abbreviation:</label>
+                                <input type="text" class="col-md-8" autocomplete="off" id="CountryAbbreviation" required placeholder="Enter Abbreviation.." />
+                                <br />
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-offset-4 col-md-8">
+                                    <button onclick="SubmitCountry()" class="btn btn-success"> Submit </button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add State Modal -->
+        <div id="StateModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-header" style="background-color: #2e6da4; color: white">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title text-center">Add State</h4>
+                    </div>
+                    <div class="modal-body text-centers">
+                        <div class="form-horizontal">
+                            <div class="form-group">
+                                <div id="HiddenAddStateMessage"></div>
+                                <label class="col-md-4" style="text-align:right">Country:</label>
+                                <select  name="AddStateCountryID" id="AddStateCountryID" class="col-md-8">
+                                    <option value="">-- Choose a Country --</option>
+                                    @foreach (var Country in Model.Countries)
+                                    {
+                                        <option value="@Country.Value">  @Country.Text </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <div id="HiddenAddStateMessage"></div>
+                                <label class="col-md-4" style="text-align:right">State Name:</label>
+                                <input required type="text" class="col-md-8" onblur="CheckNewStateName(this.value)" id="NewStateName" />
+                            </div>
+                            <div class="form-group">
+                                <label class="col-md-4" style="text-align:right">Abbreviation:</label>
+                                <input required type="text" class="col-md-8"  id="StateAbbreviation" />
+                                <br />
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-offset-4 col-md-8">
+                                    <button onclick="SubmitState()" class="btn btn-success"> Submit </button>
+                                </div>
+                            </div>
+
+                            </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+
+
+
+    </div>
+ 
+<script type="text/javascript">
+    //Need jquery for this...Not installed by default in mvc5.. add scripts for jquery in header or add the bundle
+    $(document).ready(function () {
+        //Dropdownlist Selectedchange event
+        $("#CustomerID").change(function () {
+            LoadSiteTypes(); //Calls JS fn below
+        });
+        $("#Country").change(function () {
+            LoadStates();
+        });
+    });
+
+
+    function LoadSiteTypes() {
+        $("#SiteTypeID").empty(); //Clear SiteType DD box
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("GetSiteTypes")', // we are calling json method in Controller
+            dataType: 'json',
+            data: { CustomerID: $("#CustomerID").val() },
+            success: function (SiteTypes) {
+                $.each(SiteTypes, function (i, SiteType) {
+                    $("#SiteTypeID").append('<option value="' + SiteType.Value + '">' +
+                            SiteType.Text + '</option>');
+                });
+            },
+            error: function (ex) {
+                alert('Failed to retrieve SiteTypes' + ex);
+            }
+        });
+        return false;
+    }
+
+
+    //  ADD NEW SITE TYPE by modal and ajax
+    function SubmitSiteType() {
+        var CustomerID = $("#CustomerID2").val(); //get customerID selected value of DD
+        var Name = $("#SiteTypeName").val(); //Get siteType input
+        alert(" custID: " + CustomerID + " siteType: " + Name );
+        document.getElementById("HiddenMessage").innerHTML = "";
+        if (Name == "" || CustomerID == "") {
+            //        $("#HiddenMessage").html("Must Select Customer and SiteType!");
+            document.getElementById("HiddenMessage").style.color = "red";
+            document.getElementById("HiddenMessage").innerHTML = "Must Select Customer and SiteType!";
+
+            //alert('Must Select Customer and SiteType!');
+        } else {
+            $.ajax({
+                method: "POST",
+                url: "AddSiteType",
+                data: {
+                    CustomerID: CustomerID, Name: Name,
+                },
+                dataType: "html",   //expect html to be returned
+                success: function (data) {
+                    document.getElementById("SiteTypeName").value = ""; //Clear input text box
+                    $("#HiddenMessage").html(data);
+                    document.getElementById("HiddenMessage").style.color = "blue";
+                    LoadSiteTypes(); //Reload Site types drop down box
+                },
+                error: function (data) {
+                    //if we get here, validation failed
+                    alert(data);
+                    $("#HiddenMessage").html(data);
+                }
+            });
+        }
+    }
+
+    //After Site Number entered, check for duplicate site number (for the customer) and
+    // show error message if site number already exists for that customer.
+    function CheckSiteNumber($SiteNumber) {
+        var CustomerID = $("#CustomerID").val(); //get customerID selected value
+        var SiteNumber = $SiteNumber;
+        //alert("CustID: " + CustomerID + " ,SiteNumber: " + SiteNumber );
+        document.getElementById("HiddenSiteNumberMessage").innerHTML = "";
+        if (CustomerID == "" ||  SiteNumber == "") {
+            document.getElementById("HiddenSiteNumberMessage").innerHTML = "<b style='color:red'>Must Select Customer and SiteNumber!</b>";
+
+            //alert('Must Select Customer and SiteType!');
+        } else {
+            $.ajax({
+                method: "POST",
+                url: "CheckSiteNumber", //Fn in Site Controller
+                data: {
+                    CustomerID: CustomerID, SiteNumber: SiteNumber,
+                },
+                dataType: "html",   //expect html to be returned
+                success: function (data) {
+                   // alert('success at site number');
+                    //if siteNumber looks good = "Site Number Available", else returns longer error message
+                    $("#HiddenSiteNumberMessage").html(data);
+                    document.getElementById("HiddenSiteNumberMessage").style.color = "blue";
+                },
+                error: function () {
+                    alert('failed site number check');
+                    //if we get here, validation failed
+                    $("#hiddenSiteNumberError").show();
+                    var html = '<span style="background-color: yellow" class="text-danger">Site Number <mark>' + siteNumber + '</mark> already exists!';
+                    document.getElementById("hiddenSiteNumberError").innerHTML = html;
+                    document.getElementById("siteNumber").value = "";
+                }
+            });
+        }
+    }
+
+    function AddCustomer() {
+        var Name = $("#Name").val();
+        var Abbreviation = $("#BillingAddress").val();
+        //alert(" custID: " + CustomerID + " siteType: " + Name );
+        document.getElementById("HiddenCustomerMessage").innerHTML = "";
+        if (Name == "" || BillingAddress == "") {
+            document.getElementById("HiddenCustomerMessage").style.color = "red";
+            document.getElementById("HiddenCustomerMessage").innerHTML = "Must Input Customer Name AND Billing Address!";
+        } else {
+            $.ajax({
+                method: "POST",
+                url: "AddCustomer",
+                data: {
+                    Name: Name, BillingAddress: BillingAddress,
+                },
+                dataType: "html",   //expect html to be returned
+                success: function (data) {
+                    document.getElementById("Name").value = ""; //Clear input text box
+                    document.getElementById("BillingAddress").value = "";
+                    $("#HiddenCustomerMessage").html(data);
+                    document.getElementById("HiddenCustomerMessage").style.color = "blue";
+                    LoadCountries();//Reload Countries DropDown
+                },
+                error: function (data) {
+                    //if we get here, validation failed
+                    alert(data);
+                    $("#HiddenCountryMessage").html(data);
+                }
+            });
+        }
+    }
+
+//MODAL FOR "ADD COUNTRY" FUNCTIONS
+    function SubmitCountry() {
+        var Name = $("#CountryName").val();
+        var Abbreviation = $("#CountryAbbreviation").val();
+        //alert(" custID: " + CustomerID + " siteType: " + Name );
+        document.getElementById("HiddenCountryMessage").innerHTML = "";
+        if (Name == "" || Abbreviation == "") {
+            document.getElementById("HiddenCountryMessage").style.color = "red";
+            document.getElementById("HiddenCountryMessage").innerHTML = "Must Input Country Name AND Abbreviation!";
+        } else {
+            $.ajax({
+                method: "POST",
+                url: "AddCountry",
+                data: {
+                    Name: Name, Abbreviation: Abbreviation,
+                },
+                dataType: "html",   //expect html to be returned
+                success: function (data) {
+                    document.getElementById("CountryName").value = ""; //Clear input text box
+                    document.getElementById("CountryAbbreviation").value = "";
+                    $("#HiddenCountryMessage").html(data);
+                    document.getElementById("HiddenCountryMessage").style.color = "blue";
+                    LoadCountries();//Reload Countries DropDown
+
+                },
+                error: function (data) {
+                    //if we get here, validation failed
+                    alert(data);
+                    $("#HiddenCountryMessage").html(data);
+                }
+            });
+        }
+    }
+
+    //IF new country added, need to delete and reload Countries Drop Down
+    function LoadCountries() {
+        $("#CountryDD").empty();
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("GetCountries")', // we are calling json method
+            dataType: 'json',
+            data: {},//no data needed, loading all countries
+            success: function (Countries) {
+                $.each(Countries, function (i, Country) {
+                    $("#CountryDD").append('<option value="' + Country.Value + '">' +
+                            Country.Text + '</option>');
+                });
+                alert('trying to add Countries');
+            },
+            error: function (ex) {
+                alert('Failed to retrieve Countries ' + ex);
+            }
+        });
+        return false;
+    }
+
+
+//States Modal Functions
+    function CheckNewStateName($NewStateName) {
+        var CountryID = $("#AddStateCountryID").val();
+        var NewStateName = $NewStateName; //$("#NewStateName").val();
+        //alert("CountryID: " + CountryID + " ,State: " + NewStateName );
+        document.getElementById("HiddenAddStateMessage").innerHTML = "";
+        if (CountryID == "" || NewStateName == "") {
+            document.getElementById("HiddenAddStateMessage").innerHTML = "<b style='color:red'>Must Select Country and enter state!</b>";
+        } else {
+            $.ajax({
+                method: "POST",
+                url: "CheckNewStateName", //Fn in Site Controller
+                data: {
+                    CountryID: CountryID, NewStateName: NewStateName,
+                },
+                dataType: "html",   //expect html to be returned
+                success: function (data) {
+                    //alert('success at checking state name');
+                    //if siteNumber looks good = "Site Number Available", else returns longer error message
+                    $("#HiddenAddStateMessage").html(data);
+                    document.getElementById("HiddenSiteNumberMessage").style.color = "blue";
+                },
+                error: function () {
+                    alert('failed State NAME check');
+                    //if we get here, validation failed
+                    $("#HiddenAddStateMessage").show();
+                    var html = '<span style="background-color: yellow" class="text-danger">State <mark>' + NewStateName + '</mark> already exists!';
+                    document.getElementById("HiddenAddStateMessage").innerHTML = html;
+                    document.getElementById("NewStateName").value = "";
+                }
+            });
+        }
+    }
+
+
+    function SubmitState() {
+        var CountryID = $("#AddStateCountryID").val();
+        var Name = $("#NewStateName").val();
+        var Abbreviation = $("#StateAbbreviation").val();
+        //alert("CountryID: " + CountryID + " ,State: " + Name + ", Abbrev: " + Abbreviation);
+        document.getElementById("HiddenAddStateMessage").innerHTML = "";
+
+        if (Name == ""  || Abbreviation == "") {
+            document.getElementById("HiddenAddStateMessage").style.color = "red";
+            document.getElementById("HiddenAddStateMessage").innerHTML = "Must Enter Country, State Name, AND Abbreviation!";
+        } else {
+            $.ajax({
+                method: "POST",
+                url: "AddState",
+                data: {
+                    CountryID: CountryID, Name: Name, Abbreviation: Abbreviation,
+                },
+                dataType: "html",   //expect html to be returned
+                success: function (data) {
+                    document.getElementById("NewStateName").value = ""; //Clear input text box
+                    document.getElementById("StateAbbreviation").value = "";
+                    $("#HiddenAddStateMessage").html(data);
+                    document.getElementById("HiddenAddStateMessage").style.color = "blue";
+                    LoadStates();//Reload DropDown
+                },
+                error: function (data) {
+                    //if we get here, validation failed
+                    $("#HiddenAddStateMessage").html(data);
+                }
+            });
+        }
+    }
+
+    function LoadStates() {
+        $("#StateID").empty();
+        var CountryID = $("#CountryDD").val();
+        //alert("CountryID: " + CountryID );
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("GetStates")', // we are calling json method
+            dataType: 'json',
+            data: { CountryID },//no data needed, loading all countries
+            success: function (States) {
+                $.each(States, function (i, State) {
+                    $("#StateID").append('<option value="' + State.Value + '">' +
+                            State.Text + '</option>');
+                });
+            },
+            error: function (ex) {
+                alert('Failed to retrieve States ' + ex);
+            }
+        });
+        return false;
+    }
+
+
+    //After StateDropDown selected, this fn loads cities drop down
+    function loadCities($stateID) {
+        $("#addNewCityLink").show();
+        var countryID = $("#countryDD").val(); //get countryID selected value
+        var stateID = $stateID;
+        //		alert("CountryID: " + countryID + " StateID: " + stateID);
+
+        $.ajax({
+            method: "POST",
+            url: "load_cities", //Goes to routes.php, and to ajaxController, Route::POST('load_site_types', 'AjaxControllerATload_site_types');
+            data: {
+                _token: "{{ csrf_token() }}",   // MUST PASS TOKEN! or get internal 500 error
+                countryID: countryID, stateID: stateID,
+            },
+            dataType: "html",   //expect html to be returned
+            success: function (data) {
+                //alert('success');
+                $("#hiddenCities").html(data);
+            },
+            error: function () {
+                //alert('failed to load cities');
+            }
+        });
+    }
+
+
+</script>

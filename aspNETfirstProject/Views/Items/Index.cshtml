@@ -1,0 +1,209 @@
+﻿@model aspNETfirstProject.ViewModels.ItemsViewModel
+
+@{
+    // Create button text "Create New Device" or "Create New Phone", etc
+    string type = Model.ItemType;
+    string LinkText = "Create New " + type.Substring(0, 1).ToUpper() + type.Substring(1).ToLower();
+}
+
+<h2>@Model.Title</h2>
+
+@* IF user is logged in, show create POST button*@
+@if (Model.UserAuthorized)
+{
+    <p>
+        @Html.ActionLink(LinkText, "Create", "Items", new { ItemType = Model.ItemType },
+            new { @class = "btn btn-success btn-lg active" })
+    </p>
+} else
+{
+    <p>Log in to Create a Post.</p>
+}
+
+@if (Model.Items.Count == 0) {
+    <h2>No @Model.ItemType Found.</h2>
+    }
+<div class="row">
+    @foreach (var item in Model.Items) {
+    
+        <div class="col-md-3" style="background-color: lightblue">
+            <div>
+                <span id="@(Model.ItemType + item.ID)"> Title: @item.Title</span>
+            </div>
+            <div>
+                Description: <span class="description">@item.Description</span>
+            </div>
+            <div>
+                @if (item.DocumentPath != null)
+                {
+                    <a class="btn btn-primary" href="~/Documents/@(item.DocumentPath)"
+                       role="button">
+                        <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
+                        @item.DocumentPath.Substring(15)
+                    </a>
+                }
+            </div>    
+            <div>
+                @if (item.ImagePath != null)
+                {
+                    <img src="~/Images/@(item.ImagePath)" alt="pic" class="img-rounded">
+                    <br /><br />
+                }
+            </div>
+            <div>
+                Author: @item.ApplicationUser.UserName
+                @if (item.ApplicationUser.ImageUrl == null)
+                {
+                    <img src="~/Images/Gravatars/pinkKitty.jpg" alt="gravatar"
+                         height="35" width="35" class="img-circle">
+                }
+                else
+                {
+                    <img src="~/Images/Gravatars/@(item.ApplicationUser.ImageUrl)" alt="gravatar"
+                         height="35" width="35" class="img-circle">
+                }
+            </div>
+
+            <div>
+                Updated: @Html.DisplayFor(modelItem => item.Updated_at)
+                Type: @Html.DisplayFor(modelItem => item.ItemType)
+            </div>   
+            <div>
+                @if (Model.UserAuthorized)
+                {
+                    <a href="#0" class="btn btn-success" onclick="show_add_comment_form(@(item.ID))">
+                        Add a Comment <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                    </a>
+
+                    <!-- hidden "add comment form" -->
+                    <div id="hiddenAddComment@(item.ID)" style="display: none">
+                        <textarea id="newComment@(item.ID)" rows="4"style="width:100%"></textarea>
+                        <button class="add_comment" data-id="@item.ID">Submit</button>
+                    </div>
+
+                } <!-- End hidden links if user logged in -->
+
+                @Ajax.ActionLink("Show Comments", "ShowComments", new { itemID = item.ID },
+                    new AjaxOptions
+                    {
+                        UpdateTargetId = "HiddenComments" + item.ID,
+                    }, new { @class = "btn btn-info" })
+                <div id="HiddenComments@(item.ID)"></div>
+            </div>   
+            <div>
+                @if (Model.UserAuthorized)
+                {
+                    if (Model.UserId == item.UserID || Model.UserAdmin)
+                    {
+                        @Html.ActionLink("Edit", "Edit", new { id = item.ID }) <span>|</span>
+                        @Html.ActionLink("Delete", "Delete", new { id = item.ID })
+                    }
+                }
+            </div>
+            
+        </div>        
+    }
+    
+</div>
+
+
+@*@Html.BeginForm(null, null, FormMethod.Post, new { @id = "__AjaxAntiForgeryForm" })
+{
+    @Html.AntiForgeryToken()
+}*@
+
+
+<script type="text/javascript">
+
+    //on click, show add_comment form
+    function show_add_comment_form($id) {
+        $("#add_comment_form" + $id).show("slow");
+        $("#addCommentLink" + $id).hide("slow");
+    }
+
+    function add_comment(id) {
+        var itemId = id;
+        var body = document.getElementById('textBody' + itemId).value; 
+        var type = '@Model.ItemType';
+        alert("body is: " + body + "itemId: " + itemId + type + "user" + userId);
+        //var form = $('#__AjaxAntiForgeryForm');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+
+        $.ajax({
+            method: "POST",
+            url: "/Items/add_comment",//ItemsController
+            data: { 
+                ItemID: itemId,
+                Description: body,
+                __RequestVerificationToken: token
+            },
+            success: function (data) {
+                //show_comments($id);
+                alert("Comment added" + data);
+                //$("#add_comment_form" + $id).hide("slow");
+            },
+            error: function(){
+                alert('failure at add Comments');
+            }
+        });
+
+    }
+
+	function show_comments(id) {
+
+		var itemId = id;
+		var genre = "@Model.ItemType";
+
+	    var role = "";
+
+        @if (Model.UserAuthorized) {
+            var UserID = Model.UserId;
+         }
+	    alert("Role: " + role + "itemId: " + itemId + type + "user" + userId);
+        var form = $('#__AjaxAntiForgeryForm');
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
+
+		$.ajax({
+                method: "POST",
+			url: "show_comments",
+			data: { __RequestVerificationToken: token,   // MUST PASS TOKEN! or get internal 500 error
+			    ItemID: itemId, genre: genre, UserID: UserID,
+				role: role,
+			}, //pass device id to show_comments
+			dataType: "html",   //expect html to be returned
+			success: function (data) {
+				$("#HiddenComments" + itemId).html(data);
+                    alert(data);
+                },
+			error: function(){
+                    alert('failure at Comments');
+                }
+            });
+	}
+
+		function delete_comment($id) {
+			var id= $id;
+			alert('deleteing itemId' + id);
+			var form = $('#__AjaxAntiForgeryForm');
+			var token = $('input[name="__RequestVerificationToken"]', form).val();
+
+			$.ajax({
+				method: "POST",
+				url: "delete_comment",//post "delete_comment" handled by AjaxController
+				data: {__RequestVerificationToken: token,   // MUST PASS TOKEN! or get internal 500 error
+					itemId: id
+				}, //pass device id to show_comments
+				dataType: "html",   //expect html to be returned
+				success: function (data) {
+					alert('deleteed comment');
+					//setTimeout(function(){ show_comments($id); }, 3000);
+					$( "#HiddenComments" + $id).hide("slow");
+					//$( "#add_comment_form" + $id).hide("slow");
+				},
+				error: function(){
+					alert('failure at delete Comments');
+				}
+			});
+
+		}
+</script>

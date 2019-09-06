@@ -1,0 +1,160 @@
+﻿<!-- at.model aspNETfirstProject.Models.IndexViewModel 
+    
+    Cannot use: Atmodel aspNETfirstProject.Models.ProfileModel
+    Because it will require a password, and you will be sent to password page
+    -->
+
+@model aspNETfirstProject.Models.ProfileModel
+
+@{
+    ViewBag.Title = "Manage";
+}
+
+<h2>@ViewBag.Title.</h2>
+
+<p class="text-success">@ViewBag.StatusMessage</p>
+<div>
+    <h4>Change your account settings</h4>
+    <hr />
+    @using (Html.BeginForm("Index", "Manage", FormMethod.Post,
+                        new { @class = "form-horizontal", role = "form", enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+
+        @Html.ValidationSummary("", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(m => m.Email, new { @class = "col-md-2 control-label" })
+            <div class="col-md-10">
+                @Html.EditorFor(m => m.Email, new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.JobTitle, new { @class = "col-md-2 control-label" })
+            <div class="col-md-10">
+                @Html.EditorFor(m => m.JobTitle, new { @class = "form-control" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ImageUrl, "Your Gravatar", new { @class = "col-md-2 control-label" })
+            <div class="col-md-10">
+                @if (Model.ImageUrl == null)
+                {
+                    <img src="~/Images/Gravatars/pinkKitty.jpg" alt="gravatar"
+                         height="80" width="80" class="img-circle">
+                }
+                else
+                {
+                    <img src="~/Images/Gravatars/@(Model.ImageUrl)" alt="gravatar"
+                         height="80" width="80" class="img-circle">
+                }
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.ImageUrl, "Change Gravatar", new { @class = "col-md-2 control-label" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.ImageUrl, new { @type = "file" })
+                @Html.ValidationMessageFor(model => model.ImageUrl, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" class="btn btn-success" value="Submit" />
+            </div>
+        </div>
+    }
+    <dl class="dl-horizontal">
+        <dt>Password:</dt>
+        <dd>
+            @Html.ActionLink("Change your password", "ChangePassword")
+        </dd>
+    </dl>
+
+    @if (User.IsInRole("admin"))
+    {
+
+        <dl class="dl-horizontal">
+            <dt></dt>
+            <dd>
+                @Html.ActionLink("Manage Roles", "Index", "Role", null, new { @class = "btn btn-success active" })
+            </dd>
+        </dl>
+        <dl class="dl-horizontal">
+            <dt></dt>
+            <dd>
+                <a href="/Manage/PendingPosts" class="btn btn-info active" >Pending Posts 
+                    <span style="text-align: center;" class="badge">@ViewBag.NumPendingPosts </span></a>
+            </dd>
+        </dl>
+    }
+
+</div>
+    @*
+        @*
+        <dt>External Logins:</dt>
+        <dd>
+            @Model.Logins.Count [
+            @Html.ActionLink("Manage", "ManageLogins") ]
+        </dd>
+        *@
+        @*
+            Phone Numbers can used as a second factor of verification in a two-factor authentication system.
+             
+             See <a href="http://go.microsoft.com/fwlink/?LinkId=403804">this article</a>
+                for details on setting up this ASP.NET application to support two-factor authentication using SMS.
+             
+             Uncomment the following block after you have set up two-factor authentication
+        *@
+        @*  
+            <dt>Phone Number:</dt>
+            <dd>
+                @(Model.PhoneNumber ?? "None")
+                @if (Model.PhoneNumber != null)
+                {
+                    <br />
+                    <text>[&nbsp;&nbsp;@Html.ActionLink("Change", "AddPhoneNumber")&nbsp;&nbsp;]</text>
+                    using (Html.BeginForm("RemovePhoneNumber", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <text>[<input type="submit" value="Remove" class="btn-link" />]</text>
+                    }
+                }
+                else
+                {
+                    <text>[&nbsp;&nbsp;@Html.ActionLink("Add", "AddPhoneNumber")
+                }
+            </dd>
+        *@
+        @*
+    <dt>Two-Factor Authentication:</dt>
+    <dd>
+        <p>
+            There are no two-factor authentication providers configured. See <a href="http://go.microsoft.com/fwlink/?LinkId=403804">this article</a>
+            for details on setting up this ASP.NET application to support two-factor authentication.
+        </p>
+        *@
+            @*@if (Model.TwoFactor)
+            {
+                using (Html.BeginForm("DisableTwoFactorAuthentication", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <text>Enabled
+                    <input type="submit" value="Disable" class="btn btn-link" />
+                    </text>
+                }
+            }
+            else
+            {
+                using (Html.BeginForm("EnableTwoFactorAuthentication", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
+                {
+                    @Html.AntiForgeryToken()
+                    <text>Disabled
+                    <input type="submit" value="Enable" class="btn btn-link" />
+                    </text>
+                }
+            }
+    </dd>
+    </dl>
+</div>
+*@
