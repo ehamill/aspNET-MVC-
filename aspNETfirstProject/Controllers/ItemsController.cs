@@ -44,20 +44,7 @@ namespace aspNETfirstProject.Controllers
             return View(model);
         }
 
-        // GET: Items
-        public async Task<ActionResult> Index2(string itemType)
-        {
-            var model = new ItemsViewModel
-            {
-                Title = _itemsRepository.getTitle(itemType),
-                ItemType = itemType,
-                UserAuthorized = true, //User.Identity.IsAuthenticated, testing
-                UserId = User.Identity.GetUserId(),
-                UserAdmin = User.IsInRole("admin"),
-                Items = await _itemsRepository.GetItems(itemType)
-            };
-            return View(model);
-        }
+        
         public async Task<ActionResult> ShowComments(int ItemID)
         {
             IList<Comment> comments = await _itemsRepository.GetComments(ItemID); 
