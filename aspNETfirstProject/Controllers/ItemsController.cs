@@ -51,12 +51,6 @@ namespace aspNETfirstProject.Controllers
             return PartialView("_CommentsPartial", comments);
         }
 
-        public async Task<ActionResult> ShowComments22(int ItemID)
-        {
-            IList<Comment> comments = await _itemsRepository.GetComments(ItemID);
-            return PartialView("_CommentsPartial", comments);
-        }
-
         public ActionResult Testing()
         {
             //IList<Comment> comments = await _itemsRepository.GetComments(ItemID);
