@@ -2,8 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Helpers;
 using System.Web.Mvc;
 
@@ -17,28 +19,17 @@ namespace aspNETfirstProject.Repository
         {
             this.context = context;
         }
-        public async Task<JsonResult> AddComment(Comment c)
+
+        public async Task<Item> GetItem(int id)
         {
-            try
-            {
-                context.Comments.Add(c);
-                await context.SaveChangesAsync();
-                //return new JsonResult("testing");
-                //return Json( Anything = "Hello World" );
-                return new JsonResult { Data = "Ok"  };
-                //return new JsonResult(new { Data =  "Error: " });
-            }
-            catch (Exception ex)
-            {
-                return new JsonResult{ Data = "Error: " + ex.InnerException.Message };
-            }
-            
+            Item item = await context.Items.FindAsync(id);
+            return item;
         }
 
         public async Task<IList<Item>> GetItems(string itemType)
         {
             ItemType item = getType(itemType);
-            
+
             IList<Item> items = await context.Items
                 .Where(c => c.ItemType == item)
                 .Where(c => c.Approved == true)
@@ -47,6 +38,39 @@ namespace aspNETfirstProject.Repository
             return items;
         }
 
+        public async void  AddItem(Item item)
+        {
+            context.Items.Add(item);
+            await context.SaveChangesAsync();
+        }
+
+        public async void UpdateItem(Item item)
+        {
+            context.Items.Add(item);
+            await context.SaveChangesAsync();
+        }
+
+        public async void DeleteItem(Item item)
+        {
+            context.Items.Remove(item);
+            await context.SaveChangesAsync();
+        }
+
+        public async Task<JsonResult> AddComment(Comment c)
+        {
+            try
+            {
+                context.Comments.Add(c);
+                await context.SaveChangesAsync();
+                return new JsonResult { Data = "Ok"  };
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult{ Data = "Error: " + ex.InnerException.Message };
+            }
+            
+        }
+        
         public ItemType getType(string itemType) {
             switch (itemType)
             {
@@ -82,8 +106,8 @@ namespace aspNETfirstProject.Repository
             return await context.Comments.Where(i => i.ItemID == ItemID).ToListAsync();
         }
 
-        
-            
+
+
 
 
     }
