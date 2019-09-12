@@ -26,22 +26,21 @@ namespace aspNETfirstProject.Repository
             return item;
         }
 
-        public async Task<IList<Item>> GetItems(string itemType)
+        public async Task<IList<Item>> GetItems(ItemType itemType)
         {
-            ItemType item = getType(itemType);
-
             IList<Item> items = await context.Items
-                .Where(c => c.ItemType == item)
+                .Where(c => c.ItemType == itemType)
                 .Where(c => c.Approved == true)
                 .OrderByDescending(c => c.Updated_at)
                 .ToListAsync();
             return items;
         }
 
-        public async void  AddItem(Item item)
+        public void AddItem(Item item)
         {
+            item.ItemType = ItemType.device;
             context.Items.Add(item);
-            await context.SaveChangesAsync();
+             context.SaveChanges();
         }
 
         public async void UpdateItem(Item item)
@@ -71,31 +70,32 @@ namespace aspNETfirstProject.Repository
             
         }
         
-        public ItemType getType(string itemType) {
-            switch (itemType)
-            {
-                case ("Devices"):
-                    return ItemType.device;
-                case ("Phones"):
-                    return ItemType.phone;
-                case ("APs"):
-                    return ItemType.ap;
-                case ("Switches"):
-                    return ItemType.switch2;
-                default:
-                    return ItemType.device; ;
-            }
-        }
+        //public ItemType getType(string itemType) {
+        //    switch (itemType)
+        //    {
+        //        case ("Devices"):
+        //            return ItemType.device;
+        //        case ("Phones"):
+        //            return ItemType.phone;
+        //        case ("APs"):
+        //            return ItemType.ap;
+        //        case ("Switches"):
+        //            return ItemType.switch2;
+        //        default:
+        //            return ItemType.device; ;
+        //    }
+        //}
 
-        public string getTitle(string itemType) {
+        public string getTitle(ItemType itemType) {
+           
             switch (itemType) {
-                case ("Devices"):
+                case (ItemType.device):
                     return "Troubleshooting Devices: Thin Clients, Registers,Money Gram, Kiosks, etc.";
-                case ("Phones"):
+                case (ItemType.phone):
                     return "Troubleshooting Phones: Cisco, Avaya, Magix, Nortel";
-                case ("APs")://"Switch Configurations"
+                case (ItemType.ap)://"Switch Configurations"
                     return "Troubleshooting APs: Wireless Access Points";
-                case ("Switches"):
+                case (ItemType.switch2):
                     return "Switch Configurations";
                 default:
                     return "Error";

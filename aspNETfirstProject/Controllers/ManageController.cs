@@ -31,6 +31,31 @@ namespace aspNETfirstProject.Controllers
             SignInManager = signInManager;
         }
 
+        public ApplicationSignInManager SignInManager
+        {
+            get
+            {
+                return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
+            }
+            private set
+            {
+                _signInManager = value;
+            }
+        }
+
+        public ApplicationUserManager UserManager
+        {
+            get
+            {
+                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
+            }
+            private set
+            {
+                _userManager = value;
+            }
+        }
+
+
         //
         // GET: /Manage/Index
         public async Task<ActionResult> Index(ManageMessageId? message)
@@ -121,7 +146,7 @@ namespace aspNETfirstProject.Controllers
         public ActionResult PendingPosts()
         {
             var Items = db.Items.Where(c => c.Approved == false).ToList();
-            return View(Items);    
+            return View(Items);
         }
 
         // POST: Approve Pending Posts by Ajax
@@ -135,7 +160,7 @@ namespace aspNETfirstProject.Controllers
             db.SaveChanges();
             return "approved";
         }
-        
+
         public string DeletePost(int itemId)
         {
             Item item = db.Items.Find(itemId);
@@ -144,29 +169,7 @@ namespace aspNETfirstProject.Controllers
             return "Deleted";
         }
 
-        public ApplicationSignInManager SignInManager
-        {
-            get
-            {
-                return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
-            }
-            private set 
-            { 
-                _signInManager = value; 
-            }
-        }
 
-        public ApplicationUserManager UserManager
-        {
-            get
-            {
-                return _userManager ?? HttpContext.GetOwinContext().GetUserManager<ApplicationUserManager>();
-            }
-            private set
-            {
-                _userManager = value;
-            }
-        }
 
         //
         // GET: CreateRoles Page

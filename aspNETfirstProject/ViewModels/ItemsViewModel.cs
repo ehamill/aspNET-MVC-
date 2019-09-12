@@ -9,7 +9,7 @@ namespace aspNETfirstProject.ViewModels
     public class ItemsViewModel
     {
         public String Title { get; set; }
-        public String ItemType { get; set; }
+        public ItemType ItemType { get; set; }
         public bool UserAuthorized { get; set; }
         public IList<Item> Items { get; set; }
         public string UserId { get; set; }

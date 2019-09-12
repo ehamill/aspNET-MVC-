@@ -2,7 +2,7 @@
 
 @{
     // Create button text "Create New Device" or "Create New Phone", etc
-    string type = Model.ItemType;
+    string type = Model.ItemType.ToString();
     string LinkText = "Create New " + type.Substring(0, 1).ToUpper() + type.Substring(1).ToLower();
 }
 

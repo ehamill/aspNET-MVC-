@@ -25,7 +25,7 @@ namespace aspNETfirstProject.Controllers
         }
 
         // GET: Items
-        public async Task<ActionResult> Index(string itemType)
+        public async Task<ActionResult> Index(ItemType itemType)
         {
             var model = new ItemsViewModel
             {
@@ -40,7 +40,7 @@ namespace aspNETfirstProject.Controllers
         }
         
         // GET: Items/Create
-        public ActionResult Create(string itemType)
+        public ActionResult Create(ItemType itemType)
         {
             ViewBag.ItemType = itemType;
             return View();
@@ -73,12 +73,13 @@ namespace aspNETfirstProject.Controllers
             }
             item.Created_at = DateTime.Now;
             item.Updated_at = DateTime.Now;
+            item.ItemType = ItemType.device;
             item.UserID = User.Identity.GetUserId();   // NOte need to include: using Microsoft.AspNet.Identity;
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _itemsRepository.AddItem(item);
+                     _itemsRepository.AddItem(item);
                 }
                 catch (Exception ex)
                 {

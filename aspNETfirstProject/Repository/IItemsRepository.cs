@@ -11,8 +11,8 @@ namespace aspNETfirstProject.Repository
     public interface IItemsRepository
     {
         Task<Item> GetItem(int id);
-        string getTitle(string itemType);
-        Task<IList<Item>> GetItems(string itemType);
+        string getTitle(ItemType itemType);
+        Task<IList<Item>> GetItems(ItemType itemType);
         Task<IList<Comment>> GetComments(int ItemId);
         Task<JsonResult> AddComment(Comment c);
         void AddItem(Item item);

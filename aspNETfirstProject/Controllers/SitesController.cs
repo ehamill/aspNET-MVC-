@@ -71,7 +71,8 @@ namespace aspNETfirstProject.Controllers
                     }).ToList();
 
             List<SelectListItem> states = new List<SelectListItem>();
-            int USCountryID = db.Countries.FirstOrDefault(n => n.Abbreviation == "US").ID; 
+            //int USCountryID = db.Countries.FirstOrDefault(n => n.Abbreviation == "US").ID;
+            int USCountryID = 0;
             states = db.States.Where(c => c.CountryID == 1)
                 .OrderBy(r => r.Name)
                 .Select(rr => new SelectListItem

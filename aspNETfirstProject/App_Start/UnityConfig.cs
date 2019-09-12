@@ -46,6 +46,7 @@ namespace aspNETfirstProject
             // TODO: Register your type's mappings here.
             container.RegisterType<IItemsRepository, ItemsRepository>();
             container.RegisterType<AccountController>(new InjectionConstructor());
+            container.RegisterType<ManageController>(new InjectionConstructor());
         }
     }
 }
