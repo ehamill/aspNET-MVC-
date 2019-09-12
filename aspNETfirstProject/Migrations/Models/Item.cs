@@ -32,7 +32,8 @@ namespace aspNETfirstProject.Models  // aspNETfirstProject is just the name of t
     public class Item
     {
         public int ID { get; set; }  //All int's and datetime are required by default
-        
+
+        [Required]
         public ItemType ItemType { get; set; }
 
         [Required(ErrorMessage = "A Title is required")]
