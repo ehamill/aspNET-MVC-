@@ -295,6 +295,10 @@
     <Compile Include="Migrations\201706102322479_nullable.Designer.cs">
       <DependentUpon>201706102322479_nullable.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201909122059113_test1.cs" />
+    <Compile Include="Migrations\201909122059113_test1.Designer.cs">
+      <DependentUpon>201909122059113_test1.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Models\AccountViewModels.cs" />
     <Compile Include="Migrations\Models\Comment.cs" />
@@ -480,6 +484,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201706102322479_nullable.resx">
       <DependentUpon>201706102322479_nullable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201909122059113_test1.resx">
+      <DependentUpon>201909122059113_test1.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

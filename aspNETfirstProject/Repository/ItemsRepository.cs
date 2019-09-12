@@ -38,21 +38,20 @@ namespace aspNETfirstProject.Repository
 
         public void AddItem(Item item)
         {
-            item.ItemType = ItemType.device;
             context.Items.Add(item);
              context.SaveChanges();
         }
 
-        public async void UpdateItem(Item item)
+        public void UpdateItem(Item item)
         {
             context.Items.Add(item);
-            await context.SaveChangesAsync();
+             context.SaveChanges();
         }
 
-        public async void DeleteItem(Item item)
+        public void DeleteItem(Item item)
         {
             context.Items.Remove(item);
-            await context.SaveChangesAsync();
+            context.SaveChanges();
         }
 
         public async Task<JsonResult> AddComment(Comment c)
@@ -70,22 +69,6 @@ namespace aspNETfirstProject.Repository
             
         }
         
-        //public ItemType getType(string itemType) {
-        //    switch (itemType)
-        //    {
-        //        case ("Devices"):
-        //            return ItemType.device;
-        //        case ("Phones"):
-        //            return ItemType.phone;
-        //        case ("APs"):
-        //            return ItemType.ap;
-        //        case ("Switches"):
-        //            return ItemType.switch2;
-        //        default:
-        //            return ItemType.device; ;
-        //    }
-        //}
-
         public string getTitle(ItemType itemType) {
            
             switch (itemType) {

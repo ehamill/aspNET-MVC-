@@ -73,7 +73,6 @@ namespace aspNETfirstProject.Controllers
             }
             item.Created_at = DateTime.Now;
             item.Updated_at = DateTime.Now;
-            item.ItemType = ItemType.device;
             item.UserID = User.Identity.GetUserId();   // NOte need to include: using Microsoft.AspNet.Identity;
             if (ModelState.IsValid)
             {
@@ -86,7 +85,7 @@ namespace aspNETfirstProject.Controllers
                     ModelState.AddModelError(string.Empty, "Error: " + ex.InnerException);
                 }
                 
-                return RedirectToAction("Index", new { pageName = item.ItemType });
+                return RedirectToAction("Index", new { ItemType = item.ItemType });
             }
 
             return View(item);
@@ -145,7 +144,7 @@ namespace aspNETfirstProject.Controllers
                 catch (Exception ex) {
                     ModelState.AddModelError(string.Empty, "Error: " + ex.InnerException);
                 }
-                return RedirectToAction("Index", new { pageName = item.ItemType });
+                return RedirectToAction("Index", new { ItemType = item.ItemType });
             }
             return View(item);
         }
@@ -180,8 +179,9 @@ namespace aspNETfirstProject.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Error: " + ex.InnerException);
             }
-            return RedirectToAction("Index", new { pageName = item.ItemType });
+            return RedirectToAction("Index", new { ItemType = item.ItemType });
         }
+
 
         public async Task<ActionResult> ShowComments(int ItemID)
         {
@@ -193,7 +193,7 @@ namespace aspNETfirstProject.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<JsonResult> add_comment([Bind(Include = "Description,ItemID")] Comment comment, string ItemType)
+        public async Task<JsonResult> Add_Comment([Bind(Include = "Description,ItemID")] Comment comment)
         {
             comment.UserID = User.Identity.GetUserId();
             JsonResult result = new JsonResult { Data = "Invalid Model." };

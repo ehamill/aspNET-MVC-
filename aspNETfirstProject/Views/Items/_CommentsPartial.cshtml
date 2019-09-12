@@ -1,6 +1,9 @@
 ﻿@model IEnumerable<aspNETfirstProject.Models.Comment>
 @using Microsoft.AspNet.Identity
 <h2>Comments</h2>
+@if(Model.Count() == 0){
+    <div>No Comments found.</div>
+}
 
 @foreach (var comment in Model)
 {
