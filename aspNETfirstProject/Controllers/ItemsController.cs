@@ -182,29 +182,7 @@ namespace aspNETfirstProject.Controllers
             return RedirectToAction("Index", new { ItemType = item.ItemType });
         }
 
-
-        public async Task<ActionResult> ShowComments(int ItemID)
-        {
-            IList<Comment> comments = await _itemsRepository.GetComments(ItemID);
-            return PartialView("_CommentsPartial", comments);
-        }
-
-
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public async Task<JsonResult> Add_Comment([Bind(Include = "Description,ItemID")] Comment comment)
-        {
-            comment.UserID = User.Identity.GetUserId();
-            JsonResult result = new JsonResult { Data = "Invalid Model." };
-            if (ModelState.IsValid)
-            {
-                result = await _itemsRepository.AddComment(comment);
-            }
-            return result;
-        }
-
-
+        
         public string SaveImage(HttpPostedFileBase ImageFile)
         {
 

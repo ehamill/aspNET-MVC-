@@ -8,84 +8,38 @@ using System.Web;
 using System.Web.Mvc;
 using aspNETfirstProject.Models;
 using aspNETfirstProject.ViewModels;
+using aspNETfirstProject.Repository;
+using System.Threading.Tasks;
 
 namespace aspNETfirstProject.Controllers
 {
     public class SitesController : Controller
     {
-        private ApplicationDbContext db = new ApplicationDbContext();
-        // private States 
-        
-        //private StateDBContext test = new StateDBContext();
-        
-        // GET: Sites
-        public ActionResult Index()
+        private ISitesRepository _sitesRepository;
+        private ICustomersRepository _customersRepository;
+        private IGeoRepository _geoRepository;
+
+        public SitesController(ISitesRepository sitesRepository, ICustomersRepository customersRepository, IGeoRepository geoRepository)
         {
-            // List<Site> Sites = db.Sites.Join
+            _sitesRepository = sitesRepository;
+            _customersRepository = customersRepository;
+            _geoRepository = geoRepository;
+        }
 
-            var blogs = db.Sites.SqlQuery("SELECT * FROM dbo.Sites");
-            System.Diagnostics.Debug.WriteLine(blogs);
+        //private ApplicationDbContext db = new ApplicationDbContext();
 
-            /*
-            var result = 
-            var result = db.Database.SqlQuery.List<Site>("SELECT SUM(d.PurchaseValue) AS 'Total', div.Name, l.Name " +
-                                                  "FROM Device AS d " +
-                                                  "RIGHT JOIN Location AS l " +
-                                                  "ON d.LOCATION_ID = l.ID " +
-                                                  "RIGHT JOIN Division AS div " +
-                                                  "ON d.DIVISION_ID = div.ID " +
-                                                  "GROUP BY div.Name, l.Name " +
-                                                  "ORDER BY l.Name");
-            var result = db.Database.SqlQuery<List<Site>>(...);
+        // GET: Sites
+        public async Task<ActionResult> Index()
+        {
+            IList<Site> Sites = await _sitesRepository.GetAllSites();
+            List<SelectListItem> customers = await _customersRepository.GetAllCustomersAsSelectListItem();
+            List<SelectListItem> countries = await _geoRepository.GetAllCountriesAsSelectListItem();
+            List<SelectListItem> states = await _geoRepository.GetAllStatesAsSelectListItem();
 
-            SELECT a.userID, b.usersFirstName, b.usersLastName FROM databaseA.dbo.TableA a inner join database B.dbo.TableB b  ON a.userID = b.userID
             
-            SELECT * FROM DefaultConnection.dbo.Sites;
-
-            var query = @"SELECT * FROM dbData as entry
-              INNER JOIN Users
-              ON entry.UserId = Users.Id
-              ORDER BY Users.Username";
-            
-
-            //List<Site> Sites = db.Sites.ToList();
-            //Sites = Sites.Join.
-            List<JunkStates> States = test.States.ToList();
-            */
-
-                List < Site > Sites = db.Sites.ToList();
-            List<SelectListItem> customers = new List<SelectListItem>();
-            customers = db.Customers.OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
-
-            List<SelectListItem> countries = new List<SelectListItem>();
-            countries = db.Countries.OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
-
-            List<SelectListItem> states = new List<SelectListItem>();
-            //int USCountryID = db.Countries.FirstOrDefault(n => n.Abbreviation == "US").ID;
-            int USCountryID = 0;
-            states = db.States.Where(c => c.CountryID == 1)
-                .OrderBy(r => r.Name)
-                .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
-
-            List<Site> AllSites = db.Sites.ToList();
-
             var model = new IndexSiteViewModel
             {
-                Sites = AllSites,
+                Sites = Sites,
                 Customers = customers,
                 Countries = countries,
                 States = states,
@@ -97,54 +51,37 @@ namespace aspNETfirstProject.Controllers
         // POST: Sites
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Index(SiteSearchViewModel SearchModel)
+        public async Task<ActionResult>  Index(SiteSearchViewModel SearchModel)
         {
-            var Context = new ApplicationDbContext();
-            var result = Context.Sites.AsQueryable();
+            //var Context = new ApplicationDbContext();
+            //var result = Context.Sites.AsQueryable();
+            var sites = from s in _sitesRepository.GetSitesAsIEnumerable()
+                           select s;
 
             if (SearchModel.CustomerID.HasValue)
-                result = result.Where(x => x.CustomerID == SearchModel.CustomerID);
+                sites = sites.Where(x => x.CustomerID == SearchModel.CustomerID);
             if (SearchModel.SiteNumber != null)
-                result = result.Where(x => x.SiteNumber.Contains(SearchModel.SiteNumber) );
+                sites = sites.Where(x => x.SiteNumber.Contains(SearchModel.SiteNumber) );
             if (SearchModel.CountryID.HasValue)
-                result = result.Where(x => x.CountryID == SearchModel.CountryID);
+                sites = sites.Where(x => x.CountryID == SearchModel.CountryID);
             if (SearchModel.StateID.HasValue)
-                result = result.Where(x => x.StateID == SearchModel.StateID);
-            
-            List<SelectListItem> customers = new List<SelectListItem>();
-            customers = db.Customers.OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
+                sites = sites.Where(x => x.StateID == SearchModel.StateID);
 
-            List<SelectListItem> countries = new List<SelectListItem>();
-            countries = db.Countries.OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
-
-            List<SelectListItem> states = new List<SelectListItem>();
-            int USCountryID = db.Countries.FirstOrDefault(n => n.Abbreviation == "US").ID;
-            states = db.States.Where(c => c.CountryID == 1)
-                .OrderBy(r => r.Name)
-                .Select(rr => new SelectListItem
-                {
-                    Value = rr.ID.ToString(),
-                    Text = rr.Name,
-                }).ToList();
-
-        //            var allSites = result.ToList();
+            List<SelectListItem> customers = await _customersRepository.GetAllCustomersAsSelectListItem();
+            List<SelectListItem> countries = await _geoRepository.GetAllCountriesAsSelectListItem();
+            List<SelectListItem> states = await _geoRepository.GetAllStatesAsSelectListItem();
             
             var model = new IndexSiteViewModel
             {
-                Sites = result.ToList(),
+                Sites = sites.ToList(),
                 Customers = customers,
+                CustomerID = SearchModel.CountryID,
+                SiteNumber = SearchModel.SiteNumber,
                 Countries = countries,
+                CountryID = SearchModel.CountryID,
                 States = states,
+                StateID = SearchModel.StateID
+
             };
             return View(model);
 
@@ -168,51 +105,31 @@ namespace aspNETfirstProject.Controllers
         // GET: Sites/Create
         public ActionResult Create()
         {
-        //Get list of customers for drop down. Should really move this to a repository
-        List<SelectListItem> customers = new List<SelectListItem>();
-        customers = db.Customers.OrderBy(r => r.Name)
-                .Select(rr => new SelectListItem
-                {
-                    Value = rr.ID.ToString(),
-                    Text = rr.Name,
-                }).ToList();
-            
+            //Get list of customers for drop down. Should really move this to a repository
+            List<SelectListItem> customers = new List<SelectListItem>();
+            customers = db.Customers.OrderBy(r => r.Name)
+                    .Select(rr => new SelectListItem
+                    {
+                        Value = rr.ID.ToString(),
+                        Text = rr.Name,
+                    }).ToList();
 
-        List<SelectListItem> countries = new List<SelectListItem>();
-        countries = db.Countries.OrderBy(r => r.Name)
-                .Select(rr => new SelectListItem
-                {
-                    Value = rr.ID.ToString(),
-                    Text = rr.Name,
-                }).ToList();
 
-        var model = new CreateSiteViewModel
-        {
-            Customers = customers,
-            Countries = countries,
-        };
-        return View(model);
+            List<SelectListItem> countries = new List<SelectListItem>();
+            countries = db.Countries.OrderBy(r => r.Name)
+                    .Select(rr => new SelectListItem
+                    {
+                        Value = rr.ID.ToString(),
+                        Text = rr.Name,
+                    }).ToList();
 
-//// Get Customers for dropdown using ViewBag
-        //var customers = db.Customers.OrderBy(r => r.Name)
-        //        .Select(rr => new SelectListItem
-        //        {
-    //            Value = rr.ID.ToString(),
-        //            Text = rr.Name
-        //        }).ToList();
-        //var countries = db.Countries.OrderBy(r => r.Name)
-        //        .Select(rr => new SelectListItem
-        //        {
-        //            Value = rr.ID.ToString(),
-        //            Text = rr.Name
-        //        }).ToList();
-        //ViewBag.Customers = customers;
-        //ViewBag.SiteTypes = new SiteType(); //Don't load site types because depends on Customer DropDown
-        //ViewBag.Countries = countries;
-        //ViewBag.States = new State(); //Don't load site types because depends on Customer DropDown
-        //ViewBag.Action = "Create";
-        //return View();
-    }
+            var model = new CreateSiteViewModel
+            {
+                Customers = customers,
+                Countries = countries,
+            };
+            return View(model);
+        }
 
         // POST: Sites/Create
         [HttpPost]

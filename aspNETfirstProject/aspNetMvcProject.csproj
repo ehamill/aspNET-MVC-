@@ -230,6 +230,7 @@
     <Compile Include="App_Start\UnityConfig.cs" />
     <Compile Include="App_Start\UnityMvcActivator.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\CommentsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ItemsController.cs" />
     <Compile Include="Controllers\ManageController.cs" />
@@ -295,10 +296,6 @@
     <Compile Include="Migrations\201706102322479_nullable.Designer.cs">
       <DependentUpon>201706102322479_nullable.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201909122059113_test1.cs" />
-    <Compile Include="Migrations\201909122059113_test1.Designer.cs">
-      <DependentUpon>201909122059113_test1.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Migrations\Models\AccountViewModels.cs" />
     <Compile Include="Migrations\Models\Comment.cs" />
@@ -313,7 +310,15 @@
     <Compile Include="Migrations\Models\SiteType.cs" />
     <Compile Include="Migrations\Models\State.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repository\GoeRepository.cs" />
+    <Compile Include="Repository\IGeoRepository.cs" />
+    <Compile Include="Repository\ICustomersRepository.cs" />
+    <Compile Include="Repository\ICommentsRepository.cs" />
+    <Compile Include="Repository\ISitesRepository.cs" />
     <Compile Include="Repository\IItemsRepository.cs" />
+    <Compile Include="Repository\CustomersRepository.cs" />
+    <Compile Include="Repository\CommentsRepository.cs" />
+    <Compile Include="Repository\SitesRepository.cs" />
     <Compile Include="Repository\ItemsRepository.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="ViewModels\IndexSiteViewModel.cs" />
@@ -418,7 +423,6 @@
     <Content Include="Views\Role\Index.cshtml" />
     <Content Include="Views\Role\Create.cshtml" />
     <Content Include="Views\Manage\PendingPosts.cshtml" />
-    <Content Include="Views\Items\_CommentsPartial.cshtml" />
     <Content Include="Views\Sites\Create.cshtml" />
     <Content Include="Views\Sites\Delete.cshtml" />
     <Content Include="Views\Sites\Details.cshtml" />
@@ -431,6 +435,7 @@
     <Content Include="Scripts\umd\popper-utils.min.js.map" />
     <Content Include="Scripts\umd\popper-utils.js.map" />
     <Content Include="Scripts\README.md" />
+    <Content Include="Views\Comments\_CommentsPartial.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Documents\" />
@@ -484,9 +489,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201706102322479_nullable.resx">
       <DependentUpon>201706102322479_nullable.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201909122059113_test1.resx">
-      <DependentUpon>201909122059113_test1.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

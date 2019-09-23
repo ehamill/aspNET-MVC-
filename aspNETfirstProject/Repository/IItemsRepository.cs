@@ -10,13 +10,13 @@ namespace aspNETfirstProject.Repository
 {
     public interface IItemsRepository
     {
+        
         Task<Item> GetItem(int id);
         string getTitle(ItemType itemType);
         Task<IList<Item>> GetItems(ItemType itemType);
-        Task<IList<Comment>> GetComments(int ItemId);
-        Task<JsonResult> AddComment(Comment c);
         void AddItem(Item item);
         void UpdateItem(Item item);
         void DeleteItem(Item item);
+
     }
 }

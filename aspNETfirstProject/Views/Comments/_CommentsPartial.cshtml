@@ -20,7 +20,9 @@
 
                 if (User.Identity.GetUserId() == comment.ApplicationUser.Id  || User.IsInRole("admin"))
                 {
-                        @Html.ActionLink("Delete", "DeleteComment", new { id = comment.ID })
+                    <a href="#" onclick="delete_comment(@comment.ID, @comment.ItemID)">
+                        Delete Comment
+                    </a>
                 }
             }
         </div>

@@ -53,21 +53,6 @@ namespace aspNETfirstProject.Repository
             context.Items.Remove(item);
             context.SaveChanges();
         }
-
-        public async Task<JsonResult> AddComment(Comment c)
-        {
-            try
-            {
-                context.Comments.Add(c);
-                await context.SaveChangesAsync();
-                return new JsonResult { Data = "Ok"  };
-            }
-            catch (Exception ex)
-            {
-                return new JsonResult{ Data = "Error: " + ex.InnerException.Message };
-            }
-            
-        }
         
         public string getTitle(ItemType itemType) {
            
@@ -84,13 +69,7 @@ namespace aspNETfirstProject.Repository
                     return "Error";
             }
         }
-
-        public async Task<IList<Comment>> GetComments(int ItemID) {
-            return await context.Comments.Where(i => i.ItemID == ItemID).ToListAsync();
-        }
-
-
-
+        
 
 
     }

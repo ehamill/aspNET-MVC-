@@ -11,22 +11,16 @@
     @Html.AntiForgeryToken()
 
     @Html.LabelFor(m => m.CustomerID, "Customer")
-    @Html.DropDownListFor(m => m.CustomerID, Model.Customers, "-- Select A Customer --", htmlAttributes: new { @onchange = "FilterSites()" })
+    @Html.DropDownListFor(m => m.CustomerID, Model.Customers, "-- Select A Customer --", htmlAttributes: new {  })
 
     @Html.LabelFor(m => m.SiteNumber, "Site Number")
-    <input type="text" onblur="FilterSites()" id="SiteNumber" name="SiteNumber" />
+    <input type="text"  id="SiteNumber" name="SiteNumber" value="@Model.SiteNumber"/>
 
     @Html.LabelFor(m => m.CountryID, "Country")
-    <select name="CountryID" id="CountryID" onchange="LoadStates(this.value)">
-        <option value="">-- Choose a Country --</option>
-        @foreach (var Country in Model.Countries)
-        {
-            <option value="@Country.Value">  @Country.Text </option>
-        }
-    </select>
-
+    @Html.DropDownListFor(m => m.CountryID, Model.Countries, "-- Select A Country --", htmlAttributes: new {})
+    
     @Html.LabelFor(m => m.StateID, "State")
-    @Html.DropDownListFor(m => m.StateID, Model.States, "-- Select A State --", htmlAttributes: new { @onchange = "FilterSites()" })
+    @Html.DropDownListFor(m => m.StateID, Model.States, "-- Select A State --", htmlAttributes: new { })
 
     <input type="submit" value="Filter" class="btn btn-success" />
     
@@ -34,15 +28,6 @@
 
 <br><br>
 
-
-
-@*
-    <span id="HiddenStateDD" style="display: none;">
-        @Html.DropDownList("States", new SelectList(string.Empty, "Value", "Text"), "-- Select a State --", new { id = "StateID", Name = "StateID" })
-    </span>
-
-
-*@
 
     <table class="table">
         <tr>
@@ -113,21 +98,10 @@
 <script type="text/javascript">
     $(document).ready(function () {
         
-        $("#Country").change(function () {
+        $("#CountryID").change(function () {
             LoadStates();
         });
     });
-
-
-    function FilterSites(){
-        var customerID = $("#CustomerID").val();
-        var siteNumber = $("#SiteNumber").val();
-        var countryID = $("#CountryID").val();
-        var	stateID = $("#StateID").val();
-       // alert("CustomerID: " + customerID + " Site#:" + siteNumber + " CountryID: " + countryID +  " StateID: " + stateID);
-        return false;
-    }
-
 
     function LoadStates() {
         $("#StateID").empty();

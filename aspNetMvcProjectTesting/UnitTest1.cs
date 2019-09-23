@@ -57,8 +57,8 @@ namespace aspNetMvcProjectTesting
                 UserID = "123abc"
             });
             var mock = new Mock<IItemsRepository>();
-            mock.Setup(x => x.getTitle(It.IsAny<string>())).Returns("Device Title");
-            mock.Setup(x => x.GetItems("Devices")).ReturnsAsync(listOfItem);
+            mock.Setup(x => x.getTitle(It.IsAny<ItemType>())).Returns("Device Title");
+            mock.Setup(x => x.GetItems(It.IsAny<ItemType>())).ReturnsAsync(listOfItem);
             
             var controller = new ItemsController(mock.Object)
             {
@@ -68,7 +68,7 @@ namespace aspNetMvcProjectTesting
                 }
             };
 
-            ActionResult result = await controller.Index("Devices");
+            ActionResult result = await controller.Index(It.IsAny<ItemType>());
 
             var viewResult = Xunit.Assert.IsType<ViewResult>(result);
             ItemsViewModel i = viewResult.Model as ItemsViewModel;

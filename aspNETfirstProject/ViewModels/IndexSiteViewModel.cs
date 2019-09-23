@@ -7,15 +7,14 @@ namespace aspNETfirstProject.ViewModels
 {
     public class IndexSiteViewModel
     {
-        public List<Site> Sites { get; set; }
-
-        //Rest of objects for the Filter...
-        public Nullable<int> CustomerID { get; set; }
+        public IList<Site> Sites { get; set; }
+        
+        public int? CustomerID { get; set; }
         public List<SelectListItem> Customers { get; set; } 
 
-        public string SiteNumber { get; set; } //Site number can be 1004 or S800754555
+        public string SiteNumber { get; set; } 
 
-        public Nullable<int> CountryID { get; set; }
+        public int? CountryID { get; set; }
         public List<SelectListItem> Countries { get; set; }
 
         public int? StateID { get; set; }

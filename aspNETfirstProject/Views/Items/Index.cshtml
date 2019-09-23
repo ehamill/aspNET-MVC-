@@ -71,6 +71,16 @@
             <div>
                 @if (Model.UserAuthorized)
                 {
+                    if (Model.UserId == item.UserID || Model.UserAdmin)
+                    {
+                        @Html.ActionLink("Edit", "Edit", new { id = item.ID }) <span>|</span>
+                        @Html.ActionLink("Delete", "Delete", new { id = item.ID })
+                    }
+                }
+            </div>
+            <div>
+                @if (Model.UserAuthorized)
+                {
                     <a href="#0" class="btn btn-success" onclick="show_add_comment_form(@(item.ID))">
                         Add a Comment <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
@@ -86,16 +96,7 @@
               
                 <div id="HiddenComments@(item.ID)"></div>
             </div>   
-            <div>
-                @if (Model.UserAuthorized)
-                {
-                    if (Model.UserId == item.UserID || Model.UserAdmin)
-                    {
-                        @Html.ActionLink("Edit", "Edit", new { id = item.ID }) <span>|</span>
-                        @Html.ActionLink("Delete", "Delete", new { id = item.ID })
-                    }
-                }
-            </div>
+            
             
         </div>        
     }
@@ -108,7 +109,6 @@
 }
 
 
-<input type="text" id="token"  value="" />
 <script type="text/javascript">
 
     function show_add_comment_form($id) {
@@ -121,15 +121,19 @@
         var token = $('input[name="__RequestVerificationToken"]', form).val();
         $.ajax({
             method: "POST",
-            url: "/Items/Add_Comment",
+            url: "/Comments/Add_Comment",
             data: { 
                 ItemID: id,
                 Description: $('#newComment' + id).val(),
                 __RequestVerificationToken: token
             },
             success: function (data) {
-                show_comments(id);
-                $("#hiddenAddComment" + id).hide();
+                if(data === "Ok"){
+                    show_comments(id);
+                    $("#hiddenAddComment" + id).hide();
+                } else{
+                    alert(data);
+                }
             },
             error: function(){
                 alert('failure at add Comments');
@@ -141,17 +145,15 @@
     function show_comments(id) {
         var form = $('#__AjaxAntiForgeryForm');
         var token = $('input[name="__RequestVerificationToken"]', form).val();
-        //alert(token);
-	   $.ajax({
+       $.ajax({
                 method: "POST",
-			url: "/Items/ShowComments",
-			data: {ItemID:id, __RequestVerificationToken: token,   // MUST PASS TOKEN! or get internal 500 error
-			    
-			}, //pass device id to show_comments
-			dataType: "html",   //expect html to be returned
+			url: "/Comments/ShowComments",
+			data: {ItemID:id, __RequestVerificationToken: token,   
+			},
+			dataType: "html",   
 			success: function (data) {
-				$("#HiddenComments" + itemId).html(data);
-                    //alert(data);
+			    $("#HiddenComments" + id).html(data);
+			   // $("#HiddenComments" + id).show();
                 },
 			error: function(){
                     alert('failure at Comments');
@@ -159,24 +161,19 @@
             });
 	}
 
-		function delete_comment($id) {
-			var id= $id;
-			alert('deleteing itemId' + id);
+		function delete_comment(CommentId, ItemId) {
 			var form = $('#__AjaxAntiForgeryForm');
 			var token = $('input[name="__RequestVerificationToken"]', form).val();
-
 			$.ajax({
 				method: "POST",
-				url: "delete_comment",//post "delete_comment" handled by AjaxController
-				data: {__RequestVerificationToken: token,   // MUST PASS TOKEN! or get internal 500 error
-					itemId: id
-				}, //pass device id to show_comments
-				dataType: "html",   //expect html to be returned
+				url: "/Comments/DeleteComment",
+				data: {__RequestVerificationToken: token,   
+				    Id: CommentId
+				}, 
+				dataType: "html",  
 				success: function (data) {
-					alert('deleteed comment');
-					//setTimeout(function(){ show_comments($id); }, 3000);
-					$( "#HiddenComments" + $id).hide("slow");
-					//$( "#add_comment_form" + $id).hide("slow");
+				    show_comments(ItemId); 
+				    //$( "#HiddenComments" + ItemId).hide("slow");
 				},
 				error: function(){
 					alert('failure at delete Comments');
