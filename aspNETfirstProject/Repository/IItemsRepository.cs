@@ -14,9 +14,9 @@ namespace aspNETfirstProject.Repository
         Task<Item> GetItem(int id);
         string getTitle(ItemType itemType);
         Task<IList<Item>> GetItems(ItemType itemType);
-        void AddItem(Item item);
-        void UpdateItem(Item item);
-        void DeleteItem(Item item);
+        Task AddItem(Item item);
+        Task UpdateItem(Item item);
+        Task DeleteItem(Item item);
 
     }
 }

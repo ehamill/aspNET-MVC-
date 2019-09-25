@@ -36,22 +36,23 @@ namespace aspNETfirstProject.Repository
             return items;
         }
 
-        public void AddItem(Item item)
+        public async Task AddItem(Item item)
         {
             context.Items.Add(item);
-             context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        public void UpdateItem(Item item)
+        public async Task UpdateItem(Item item)
         {
-            context.Items.Add(item);
-             context.SaveChanges();
+          
+            context.Entry(item).State = EntityState.Modified;
+            await context.SaveChangesAsync();
         }
 
-        public void DeleteItem(Item item)
+        public async Task DeleteItem(Item item)
         {
             context.Items.Remove(item);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
         
         public string getTitle(ItemType itemType) {

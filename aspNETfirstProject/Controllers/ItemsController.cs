@@ -50,7 +50,7 @@ namespace aspNETfirstProject.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "ID,ItemType,Title,Description,ImagePath,DocumentPath,Approved,UserID,Created_at,Updated_at")] Item item)
+        public async Task<ActionResult> Create([Bind(Include = "ID,ItemType,Title,Description,ImagePath,DocumentPath,Approved,UserID,Created_at,Updated_at")] Item item)
         {
             //Get uploaded image, if there is one.
             var ImageFile = Request.Files["ImagePath"];
@@ -78,7 +78,7 @@ namespace aspNETfirstProject.Controllers
             {
                 try
                 {
-                     _itemsRepository.AddItem(item);
+                     await _itemsRepository.AddItem(item);
                 }
                 catch (Exception ex)
                 {
@@ -115,21 +115,21 @@ namespace aspNETfirstProject.Controllers
         {
             //Need to save current ImagePath and Document path, Otherwise
             //If no image/doc uploaded the URL = null
-            Item OldItem = await _itemsRepository.GetItem(item.ID);
-            item.ImagePath = OldItem.ImagePath;
-            item.DocumentPath = OldItem.DocumentPath;
+            //Item OldItem = await _itemsRepository.GetItem(item.ID);
+            //item.ImagePath = OldItem.ImagePath;
+            //item.DocumentPath = OldItem.DocumentPath;
 
-            var ImageFile = Request.Files["ImagePath"];
-            if (ImageFile != null && ImageFile.ContentLength > 0)
-            {
-                item.ImagePath = SaveImage(ImageFile);
-            }
+            //var ImageFile = Request.Files["ImagePath"];
+            //if (ImageFile != null && ImageFile.ContentLength > 0)
+            //{
+            //    item.ImagePath = SaveImage(ImageFile);
+            //}
 
-            var DocumentFile = Request.Files["DocumentPath"];
-            if (DocumentFile != null && DocumentFile.ContentLength > 0)
-            {
-                item.DocumentPath = SaveDocument(DocumentFile);
-            }
+            //var DocumentFile = Request.Files["DocumentPath"];
+            //if (DocumentFile != null && DocumentFile.ContentLength > 0)
+            //{
+            //    item.DocumentPath = SaveDocument(DocumentFile);
+            //}
 
             //If user not admin, approved = false
             item.Approved = (User.IsInRole("admin")) ? true :  false;
@@ -139,7 +139,7 @@ namespace aspNETfirstProject.Controllers
             {
                 try
                 {
-                    _itemsRepository.UpdateItem(item);
+                   await _itemsRepository.UpdateItem(item);
                 }
                 catch (Exception ex) {
                     ModelState.AddModelError(string.Empty, "Error: " + ex.InnerException);
@@ -173,7 +173,7 @@ namespace aspNETfirstProject.Controllers
             Item item = await _itemsRepository.GetItem(id);
             try
             {
-                _itemsRepository.DeleteItem(item);
+                await _itemsRepository.DeleteItem(item);
             }
             catch (Exception ex)
             {

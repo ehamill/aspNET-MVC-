@@ -26,7 +26,7 @@ namespace aspNETfirstProject.Controllers
             _geoRepository = geoRepository;
         }
 
-        //private ApplicationDbContext db = new ApplicationDbContext();
+        private ApplicationDbContext db = new ApplicationDbContext();
 
         // GET: Sites
         public async Task<ActionResult> Index()
@@ -55,7 +55,7 @@ namespace aspNETfirstProject.Controllers
         {
             //var Context = new ApplicationDbContext();
             //var result = Context.Sites.AsQueryable();
-            var sites = from s in _sitesRepository.GetSitesAsIEnumerable()
+            var sites = from s in await _sitesRepository.GetSitesAsIEnumerable()
                            select s;
 
             if (SearchModel.CustomerID.HasValue)

@@ -26,9 +26,9 @@ namespace aspNETfirstProject.Repository
             return sites;
         }
 
-        public IEnumerable<Site> GetSitesAsIEnumerable()
+        public async Task<IEnumerable<Site>>  GetSitesAsIEnumerable()
         {
-            return context.Sites.ToList();
+            return await context.Sites.ToListAsync();
         }
 
 
@@ -38,22 +38,22 @@ namespace aspNETfirstProject.Repository
             return site;
         }
 
-        public void AddSite(Site site)
+        public async Task AddSite(Site site)
         {
             context.Sites.Add(site);
-             context.SaveChanges();
+             await context.SaveChangesAsync();
         }
 
-        public void UpdateSite(Site site)
+        public async Task UpdateSite(Site site)
         {
-            context.Sites.Add(site);
-             context.SaveChanges();
+            context.Entry(site).State = EntityState.Modified;
+            await context.SaveChangesAsync();
         }
 
-        public void DeleteSite(Site site)
+        public async Task DeleteSite(Site site)
         {
             context.Sites.Remove(site);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
        

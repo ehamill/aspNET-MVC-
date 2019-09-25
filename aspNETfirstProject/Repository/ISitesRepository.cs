@@ -11,10 +11,10 @@ namespace aspNETfirstProject.Repository
     public interface ISitesRepository
     {
         Task<IList<Site>> GetAllSites();
-        IEnumerable<Site> GetSitesAsIEnumerable();
+        Task<IEnumerable<Site>> GetSitesAsIEnumerable();
         Task<Site> GetSite(int id);
-        void AddSite(Site site);
-        void UpdateSite(Site site);
-        void DeleteSite(Site site);
+        Task AddSite(Site site);
+        Task UpdateSite(Site site);
+        Task DeleteSite(Site site);
     }
 }
