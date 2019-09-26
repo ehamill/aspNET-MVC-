@@ -59,6 +59,7 @@
             <div class="col-md-10">
                 @Html.EditorFor(model => model.ImagePath, new { htmlAttributes = new { @type = "file", @class = "form-control" } })
                 @Html.ValidationMessageFor(model => model.ImagePath, "", new { @class = "text-danger" })
+                <input type="text" id="PreviousImage" name="PreviousImage" value="@Model.ImagePath" />
             </div>
         </div>
         @if (Model.DocumentPath != null)
@@ -69,7 +70,7 @@
                     <a class="btn btn-primary" href="~/Documents/@(Model.DocumentPath)"
                        role="button">
                         <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
-                        @Model.DocumentPath.Substring(15)
+                        @Model.DocumentPath
                     </a>
                 </div>
             </div>
@@ -78,9 +79,8 @@
             @Html.LabelFor(model => model.DocumentPath, "Upload Document", htmlAttributes: new { @class = "control-label col-md-2" })
             <div class="col-md-10">
                 <input type="file" name="DocumentPath" />
-                @*@Html.EditorFor(model => model.DocumentPath, new { htmlAttributes = new { @type = "file", @class = "form-control" } })
-                *@
                 @Html.ValidationMessageFor(model => model.DocumentPath, "", new { @class = "text-danger" })
+                <input type="text" id="PreviousDocument"  name="PreviousDocument" value="@Model.DocumentPath" />
             </div>
         </div>
 
@@ -92,10 +92,10 @@
     </div>
 }
 
-                <div>
-                    @Html.ActionLink("Back to List", "Index")
-                </div>
+    <div>
+        @Html.ActionLink("Back to List", "Index")
+    </div>
 
-                @section Scripts {
-                    @Scripts.Render("~/bundles/jqueryval")
-                }
+    @section Scripts {
+        @Scripts.Render("~/bundles/jqueryval")
+    }

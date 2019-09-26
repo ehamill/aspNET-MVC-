@@ -10,6 +10,7 @@ using aspNETfirstProject.Models;
 using aspNETfirstProject.ViewModels;
 using aspNETfirstProject.Repository;
 using System.Threading.Tasks;
+using System.Web.Helpers;
 
 namespace aspNETfirstProject.Controllers
 {
@@ -53,8 +54,6 @@ namespace aspNETfirstProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult>  Index(SiteSearchViewModel SearchModel)
         {
-            //var Context = new ApplicationDbContext();
-            //var result = Context.Sites.AsQueryable();
             var sites = from s in await _sitesRepository.GetSitesAsIEnumerable()
                            select s;
 
@@ -88,40 +87,21 @@ namespace aspNETfirstProject.Controllers
         }
 
         // GET: Sites/Details/5
-        public ActionResult Details(int? id)
+        public async Task<ActionResult> Details(int id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Site site = db.Sites.Find(id);
+            Site site = await _sitesRepository.GetSite(id);  
             if (site == null)
             {
-                return HttpNotFound();
+                return HttpNotFound("Site Not found. Invalid Site # " + id);
             }
             return View(site);
         }
 
         // GET: Sites/Create
-        public ActionResult Create()
+        public async Task<ActionResult> Create()
         {
-            //Get list of customers for drop down. Should really move this to a repository
-            List<SelectListItem> customers = new List<SelectListItem>();
-            customers = db.Customers.OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
-
-
-            List<SelectListItem> countries = new List<SelectListItem>();
-            countries = db.Countries.OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
+            List<SelectListItem> customers = await _customersRepository.GetAllCustomersAsSelectListItem();
+            List<SelectListItem> countries = await _geoRepository.GetAllCountriesAsSelectListItem();
 
             var model = new CreateSiteViewModel
             {
@@ -134,31 +114,20 @@ namespace aspNETfirstProject.Controllers
         // POST: Sites/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Site site)
+        public async Task<ActionResult> Create(Site site)
         {
-            
+            site.SiteNumber = null;
             if (ModelState.IsValid)
             {
-                db.Sites.Add(site);
-                db.SaveChanges();
+                try {
+                    await _sitesRepository.AddSite(site);
+                } catch (Exception ex) {
+                    throw new HttpException("Unable to Create a Site. " + ex);
+                }
                 return RedirectToAction("Index");
             }
-            List<SelectListItem> customers = new List<SelectListItem>();
-            customers = db.Customers.OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
-
-
-            List<SelectListItem> countries = new List<SelectListItem>();
-            countries = db.Countries.OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
+            List<SelectListItem> customers = await _customersRepository.GetAllCustomersAsSelectListItem();
+            List<SelectListItem> countries = await _geoRepository.GetAllCountriesAsSelectListItem();
 
             var model = new CreateSiteViewModel
             {
@@ -169,17 +138,21 @@ namespace aspNETfirstProject.Controllers
             return View(model);
         }
 
-        /// <summary>
-        ///          CREATE SITE AJAX STUFF
-        /// </summary>
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult AddCustomer([Bind(Include = "Name, BillingAddress")] Customer customer)
+        public async Task<ActionResult> AddCustomer([Bind(Include = "Name, BillingAddress")] Customer customer)
         {
             if (ModelState.IsValid)
             {
-                db.Customers.Add(customer);
-                db.SaveChanges();
+                try
+                {
+                    await _customersRepository.AddCustomer(customer);
+                }
+                catch (Exception ex)
+                {
+                    throw new HttpException("Unable to Add Customer. " + ex);
+                }
                 return RedirectToAction("Create");
             }
             ModelState.AddModelError("Customer", "Cannot add this customer.");
@@ -238,12 +211,14 @@ namespace aspNETfirstProject.Controllers
     
         //Check if SiteNumber already exists for this Customer
         [HttpPost]
-        public String CheckSiteNumber(int? CustomerID, String SiteNumber)
+        public JsonResult CheckSiteNumber(int? CustomerID, String SiteNumber)
         {
             //Have to use int? because regular int is never null 
             if (CustomerID == null || SiteNumber == null)
             {
-                return "<b style='color:red'>Must Select Customer And Enter Site Number!</b>"; //Should never get here
+                return  Json(new { success = false, responseText = "Saved Note!" });
+
+                //  "<b style='color:red'>Must Select Customer And Enter Site Number!</b>"; //Should never get here
             }
 
             //Check if SiteNumber already exists for this customer
@@ -254,11 +229,13 @@ namespace aspNETfirstProject.Controllers
 
             if (check != null)
             {
-                return "<b style='color:red'> Site Number Already Taken!</b>";
+                return Json(new { success = false, responseText = "Site already exists!" });
+                //return "<b style='color:red'> Site Number Already Taken!</b>";
             }
             else
             {
-                return "<span style='color:green'>Site Number Looks good!</span>";
+                return Json(new { success = true, responseText = "Ok" });
+                //return "<span style='color:green'>Site Number Looks good!</span>";
             }
         }
 

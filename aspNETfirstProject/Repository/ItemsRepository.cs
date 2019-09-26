@@ -62,7 +62,7 @@ namespace aspNETfirstProject.Repository
                     return "Troubleshooting Devices: Thin Clients, Registers,Money Gram, Kiosks, etc.";
                 case (ItemType.phone):
                     return "Troubleshooting Phones: Cisco, Avaya, Magix, Nortel";
-                case (ItemType.ap)://"Switch Configurations"
+                case (ItemType.ap):
                     return "Troubleshooting APs: Wireless Access Points";
                 case (ItemType.switch2):
                     return "Switch Configurations";

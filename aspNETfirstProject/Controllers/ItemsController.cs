@@ -95,14 +95,10 @@ namespace aspNETfirstProject.Controllers
         // GET: Items/Edit/5
         public async Task<ActionResult> Edit(int id)
         {
-            if (id == 0)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
             Item item = await _itemsRepository.GetItem(id);
             if (item == null)
             {
-                return HttpNotFound();
+                return HttpNotFound("Invalid item. Item# " + id);
             }
             return View(item);
         }
@@ -111,27 +107,26 @@ namespace aspNETfirstProject.Controllers
         [HttpPost]
         [Authorize]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit([Bind(Include = "ID,ItemType,Title,Description,ImagePath,DocumentPath,Approved,UserID,Created_at,Updated_at")] Item item)
+        public async Task<ActionResult> Edit([Bind(Include = "ID,ItemType,Title,Description,ImagePath,DocumentPath,Approved,UserID,Created_at,Updated_at")] Item item, string PreviousImage, string PreviousDocument)
         {
-            //Need to save current ImagePath and Document path, Otherwise
-            //If no image/doc uploaded the URL = null
-            //Item OldItem = await _itemsRepository.GetItem(item.ID);
-            //item.ImagePath = OldItem.ImagePath;
-            //item.DocumentPath = OldItem.DocumentPath;
+            var ImageFile = Request.Files["ImagePath"];
+            if (ImageFile != null && ImageFile.ContentLength > 0)
+            {
+                item.ImagePath = SaveImage(ImageFile);
+            }
+            else {
+                item.ImagePath = PreviousImage;
+            }
 
-            //var ImageFile = Request.Files["ImagePath"];
-            //if (ImageFile != null && ImageFile.ContentLength > 0)
-            //{
-            //    item.ImagePath = SaveImage(ImageFile);
-            //}
-
-            //var DocumentFile = Request.Files["DocumentPath"];
-            //if (DocumentFile != null && DocumentFile.ContentLength > 0)
-            //{
-            //    item.DocumentPath = SaveDocument(DocumentFile);
-            //}
-
-            //If user not admin, approved = false
+            var DocumentFile = Request.Files["DocumentPath"];
+            if (DocumentFile != null && DocumentFile.ContentLength > 0)
+            {
+                item.DocumentPath = SaveDocument(DocumentFile);
+            }
+            else {
+                item.DocumentPath = PreviousDocument;
+            }
+            
             item.Approved = (User.IsInRole("admin")) ? true :  false;
             item.Updated_at = DateTime.Now;
 

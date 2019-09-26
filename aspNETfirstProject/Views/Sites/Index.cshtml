@@ -106,19 +106,17 @@
     function LoadStates() {
         $("#StateID").empty();
         var CountryID = $("#CountryID").val();
-        //alert("CountryID: " + CountryID );
         $.ajax({
             type: 'POST',
-            url: '@Url.Action("GetStates")', // we are calling json method
+            url: '@Url.Action("GetStates")', 
             dataType: 'json',
-            data: { CountryID },//no data needed, loading all countries
+            data: { CountryID },
             success: function (States) {
                 $("#StateID").append('<option value="">' + ' -- Select State -- </option>');
                 $.each(States, function (i, State) {
                     $("#StateID").append('<option value="' + State.Value + '">' +
                             State.Text + '</option>');
                 });
-                //FilterSites();
             },
             error: function (ex) {
                 alert('Failed to retrieve States ' + ex);

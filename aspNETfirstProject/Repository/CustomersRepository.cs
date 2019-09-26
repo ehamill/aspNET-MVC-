@@ -22,8 +22,6 @@ namespace aspNETfirstProject.Repository
         
         public async Task<List<SelectListItem>> GetAllCustomersAsSelectListItem()
         {
-            //IList<Customer> customers = await new List<SelectListItem>();
-            //List<SelectListItem> customers = new List<SelectListItem>();
             List<SelectListItem> customers =await context.Customers.OrderBy(r => r.Name)
                     .Select(rr => new SelectListItem
                     {
@@ -33,13 +31,19 @@ namespace aspNETfirstProject.Repository
             return customers;
         }
 
+        public async Task AddCustomer(Customer customer)
+        {
+             context.Customers.Add(customer);
+            await context.SaveChangesAsync();
+        }
+
         //public async Task<Site> GetSite(int id)
         //{
         //    Site site = await context.Sites.FindAsync(id);
         //    return site;
         //}
 
-        //public void AddSite(Site site)
+        //public void AddCustomer(Customer customer)
         //{
         //    context.Sites.Add(site);
         //     context.SaveChanges();

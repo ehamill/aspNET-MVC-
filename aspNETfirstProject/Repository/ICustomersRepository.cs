@@ -11,5 +11,6 @@ namespace aspNETfirstProject.Repository
     public interface ICustomersRepository
     {
         Task<List<SelectListItem>> GetAllCustomersAsSelectListItem();
+        Task AddCustomer(Customer customer);
     }
 }

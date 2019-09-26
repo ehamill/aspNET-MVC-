@@ -330,17 +330,13 @@
 
     //  ADD NEW SITE TYPE by modal and ajax
     function SubmitSiteType() {
-        var CustomerID = $("#CustomerID2").val(); //get customerID selected value of DD
-        var Name = $("#SiteTypeName").val(); //Get siteType input
-        alert(" custID: " + CustomerID + " siteType: " + Name );
+        var CustomerID = $("#CustomerID2").val(); 
+        var Name = $("#SiteTypeName").val(); 
         document.getElementById("HiddenMessage").innerHTML = "";
         if (Name == "" || CustomerID == "") {
-            //        $("#HiddenMessage").html("Must Select Customer and SiteType!");
             document.getElementById("HiddenMessage").style.color = "red";
             document.getElementById("HiddenMessage").innerHTML = "Must Select Customer and SiteType!";
-
-            //alert('Must Select Customer and SiteType!');
-        } else {
+            } else {
             $.ajax({
                 method: "POST",
                 url: "AddSiteType",
@@ -349,10 +345,15 @@
                 },
                 dataType: "html",   //expect html to be returned
                 success: function (data) {
-                    document.getElementById("SiteTypeName").value = ""; //Clear input text box
-                    $("#HiddenMessage").html(data);
-                    document.getElementById("HiddenMessage").style.color = "blue";
-                    LoadSiteTypes(); //Reload Site types drop down box
+                    if (data.success) {
+                        $("#HiddenMessage").html(data.responseText);
+                    } else {
+                        $("#HiddenMessage").html(data.responseText);
+                    }
+                    //document.getElementById("SiteTypeName").value = ""; //Clear input text box
+                    //$("#HiddenMessage").html(data);
+                    //document.getElementById("HiddenMessage").style.color = "blue";
+                    //LoadSiteTypes(); //Reload Site types drop down box
                 },
                 error: function (data) {
                     //if we get here, validation failed
@@ -363,30 +364,29 @@
         }
     }
 
-    //After Site Number entered, check for duplicate site number (for the customer) and
-    // show error message if site number already exists for that customer.
+   
     function CheckSiteNumber($SiteNumber) {
-        var CustomerID = $("#CustomerID").val(); //get customerID selected value
+        var CustomerID = $("#CustomerID").val(); 
         var SiteNumber = $SiteNumber;
-        //alert("CustID: " + CustomerID + " ,SiteNumber: " + SiteNumber );
         document.getElementById("HiddenSiteNumberMessage").innerHTML = "";
         if (CustomerID == "" ||  SiteNumber == "") {
             document.getElementById("HiddenSiteNumberMessage").innerHTML = "<b style='color:red'>Must Select Customer and SiteNumber!</b>";
-
-            //alert('Must Select Customer and SiteType!');
         } else {
             $.ajax({
                 method: "POST",
-                url: "CheckSiteNumber", //Fn in Site Controller
+                url: "CheckSiteNumber", 
                 data: {
                     CustomerID: CustomerID, SiteNumber: SiteNumber,
                 },
-                dataType: "html",   //expect html to be returned
+                dataType: "json",  
                 success: function (data) {
-                   // alert('success at site number');
-                    //if siteNumber looks good = "Site Number Available", else returns longer error message
-                    $("#HiddenSiteNumberMessage").html(data);
-                    document.getElementById("HiddenSiteNumberMessage").style.color = "blue";
+                    if (data.success) {
+                        $("#HiddenSiteNumberMessage").html(data.responseText);
+                        document.getElementById("HiddenSiteNumberMessage").style.color = "green";
+                    } else {
+                        $("#HiddenSiteNumberMessage").html(data.responseText);
+                        document.getElementById("HiddenSiteNumberMessage").style.color = "red";
+                    }
                 },
                 error: function () {
                     alert('failed site number check');
