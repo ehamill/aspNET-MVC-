@@ -42,17 +42,26 @@ namespace aspNETfirstProject.Repository
             return states;
         }
 
-        //public async Task<Site> GetSite(int id)
-        //{
-        //    Site site = await context.Sites.FindAsync(id);
-        //    return site;
-        //}
+        public async Task<bool> ValidateCountry(Country country)
+        {
+            var check = await context.Countries
+            .Where(c => c.Name == country.Name)
+            .FirstOrDefaultAsync();
+            if (check == null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-        //public void AddSite(Site site)
-        //{
-        //    context.Sites.Add(site);
-        //     context.SaveChanges();
-        //}
+        public async Task AddCountry(Country country)
+        {
+            context.Countries.Add(country);
+            await context.SaveChangesAsync();
+        }
 
         //public void UpdateSite(Site site)
         //{

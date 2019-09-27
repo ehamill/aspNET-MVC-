@@ -16,5 +16,6 @@ namespace aspNETfirstProject.Repository
         Task AddSite(Site site);
         Task UpdateSite(Site site);
         Task DeleteSite(Site site);
+        Task<bool> ValidateSiteNumberUniqueForCustomer(string SiteNumber, int CustomerID);
     }
 }

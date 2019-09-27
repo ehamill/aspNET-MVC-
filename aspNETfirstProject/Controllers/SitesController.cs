@@ -179,16 +179,10 @@ namespace aspNETfirstProject.Controllers
             {
                 return "Site Type already exists for this Customer.";
             }
-            //What does bind do? it creates a new object of SiteType called sitetype and 
-            // assigns the CustomerID and Name to the new object
-            //Could also do this 
-            //public String AddSiteType(string CustomerID, string Name) {do stuff..}
-            //WHy CustomerID string? Ans: DropDown values are passed as string..convert to int later
             if (ModelState.IsValid)
             {
                 db.SiteTypes.Add(sitetype);
                 db.SaveChanges();
-                //string Message = "Site Type " + sitetype + " added!";
                 return "Site Type " + sitetype.Name + " added!";
             }
             else {
@@ -211,75 +205,59 @@ namespace aspNETfirstProject.Controllers
     
         //Check if SiteNumber already exists for this Customer
         [HttpPost]
-        public JsonResult CheckSiteNumber(int? CustomerID, String SiteNumber)
+        public async Task<JsonResult> ValidateSiteNumber(int CustomerID, String SiteNumber)
         {
-            //Have to use int? because regular int is never null 
-            if (CustomerID == null || SiteNumber == null)
+            bool SiteUnique = await _sitesRepository.ValidateSiteNumberUniqueForCustomer(SiteNumber, CustomerID);
+            
+            if (SiteUnique)
             {
-                return  Json(new { success = false, responseText = "Saved Note!" });
-
-                //  "<b style='color:red'>Must Select Customer And Enter Site Number!</b>"; //Should never get here
-            }
-
-            //Check if SiteNumber already exists for this customer
-            var check = db.Sites
-                .Where(c => c.SiteNumber == SiteNumber)  // AND
-                .Where(c => c.Customer.ID == CustomerID)
-                .FirstOrDefault();
-
-            if (check != null)
-            {
-                return Json(new { success = false, responseText = "Site already exists!" });
-                //return "<b style='color:red'> Site Number Already Taken!</b>";
+                return Json(new { success = true, responseText = "Ok" });
             }
             else
             {
-                return Json(new { success = true, responseText = "Ok" });
-                //return "<span style='color:green'>Site Number Looks good!</span>";
+                return Json(new { success = false, responseText = "Site already exists for this Customer!" });
             }
         }
 
-    [HttpPost]
-    public String AddCountry([Bind(Include = "Name, Abbreviation")] Country country)
-    {
-        //Have to use int? because regular int is never null
-        if (country.Name == null || country.Abbreviation == null)
+        [HttpPost]
+        public async Task<JsonResult> AddCountry([Bind(Include = "Name, Abbreviation")] Country country)
         {
-            return "<b style='color:red'>Must enter name and abbrev! </b>";
-        }
-            
-        //Check if already exists...
-        var check = db.Countries
-            .Where(c => c.Name == country.Name)
-            .FirstOrDefault();
+           
+            bool CountryUnique = await _geoRepository.ValidateCountry(country);
 
-        if (check != null)
-        {
-            return "<b style='color:red'>Country already exists!</b>";
-        }
-        if (ModelState.IsValid)
-        {
-            db.Countries.Add(country);
-            db.SaveChanges();
-            //string Message = "Site Type " + sitetype + " added!";
-            return "Country " + country.Name + " added!";
-        }
-        else
-        {
-            return "<b style='color:red'>Error. Cannot add Site Type</b>";
-        }
-    }
-
-    public JsonResult GetCountries()
-    {
-        var Countries = db.Countries
-            .OrderBy(r => r.Name)
-            .Select(rr => new SelectListItem
+            if (CountryUnique == false)
             {
-                Value = rr.ID.ToString(),
-                Text = rr.Name
-            }).ToList();
-        return Json(new SelectList(Countries, "Value", "Text"));
+                return Json(new { success = false, responseText = "Country already exists!" });
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    await _geoRepository.AddCountry(country);
+                    return Json(new { success = true, responseText = "Ok" });
+                }
+                catch (Exception ex)
+                {
+                    throw new HttpException("Unable to Add Country. " + ex);
+                }
+                
+            }
+            ModelState.AddModelError("Country", "Cannot add this Country.");
+            return Json(new { success = false, responseText = "Country error!" });
+        }
+
+    public async Task<JsonResult> GetCountries()
+    {
+            //var Countries = db.Countries
+            //    .OrderBy(r => r.Name)
+            //    .Select(rr => new SelectListItem
+            //    {
+            //        Value = rr.ID.ToString(),
+            //        Text = rr.Name
+            //    }).ToList();
+            //return Json(new SelectList(Countries, "Value", "Text"));
+            return Json(await _geoRepository.GetAllCountriesAsSelectListItem());
     }
 
     //Check if SiteNumber already exists for this Customer

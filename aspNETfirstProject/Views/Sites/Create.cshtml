@@ -179,15 +179,15 @@
                     <div class="modal-body text-centers">
                         <div class="form-horizontal">
                             <div class="form-group" >
-                                <div id="HiddenMessage"></div>
+                                <div id="HiddenSiteTypeMessage"></div>
                                 <label class="col-md-4" style="text-align:right">
                                     Customer:
                                 </label>
-                                @Html.DropDownListFor(m => m.CustomerID, Model.Customers, "-- Select A Customer --", new { @id = "CustomerID2" } )
+                                @Html.DropDownListFor(m => m.CustomerID, Model.Customers, "-- Select A Customer --", new { @id = "SiteTypeCustomerID" } )
                             </div>
                             <div class="form-group">
                                 <label class="col-md-4" style="text-align:right">Site Type:</label>
-                                <input type="text" class="col-md-8" onblur="CheckNewSiteType(this.value)" autocomplete="off" id="SiteTypeName" required placeholder="Enter Site Type.." />
+                                <input type="text" class="col-md-8"  id="SiteTypeName" required placeholder="Enter Site Type.." />
                                 <br />
                             </div>
                             <div class="form-group">
@@ -328,14 +328,13 @@
     }
 
 
-    //  ADD NEW SITE TYPE by modal and ajax
     function SubmitSiteType() {
-        var CustomerID = $("#CustomerID2").val(); 
+        var CustomerID = $("#SiteTypeCustomerID").val(); 
         var Name = $("#SiteTypeName").val(); 
-        document.getElementById("HiddenMessage").innerHTML = "";
+        document.getElementById("HiddenSiteTypeMessage").innerHTML = "";
         if (Name == "" || CustomerID == "") {
-            document.getElementById("HiddenMessage").style.color = "red";
-            document.getElementById("HiddenMessage").innerHTML = "Must Select Customer and SiteType!";
+            document.getElementById("HiddenSiteTypeMessage").style.color = "red";
+            document.getElementById("HiddenSiteTypeMessage").innerHTML = "Must Select Customer and SiteType!";
             } else {
             $.ajax({
                 method: "POST",
@@ -343,38 +342,32 @@
                 data: {
                     CustomerID: CustomerID, Name: Name,
                 },
-                dataType: "html",   //expect html to be returned
+                dataType: "json", 
                 success: function (data) {
                     if (data.success) {
-                        $("#HiddenMessage").html(data.responseText);
+                        $("#HiddenSiteTypeMessage").html(data.responseText);
+                        $("#SiteTypeModal").modal('hide'); 
                     } else {
-                        $("#HiddenMessage").html(data.responseText);
+                        $("#HiddenSiteTypeMessage").html(data.responseText);
                     }
-                    //document.getElementById("SiteTypeName").value = ""; //Clear input text box
-                    //$("#HiddenMessage").html(data);
-                    //document.getElementById("HiddenMessage").style.color = "blue";
-                    //LoadSiteTypes(); //Reload Site types drop down box
                 },
                 error: function (data) {
-                    //if we get here, validation failed
-                    alert(data);
-                    $("#HiddenMessage").html(data);
+                    $("#HiddenSiteTypeMessage").html(data);
                 }
             });
         }
     }
 
    
-    function CheckSiteNumber($SiteNumber) {
+    function CheckSiteNumber(SiteNumber) {
         var CustomerID = $("#CustomerID").val(); 
-        var SiteNumber = $SiteNumber;
         document.getElementById("HiddenSiteNumberMessage").innerHTML = "";
         if (CustomerID == "" ||  SiteNumber == "") {
             document.getElementById("HiddenSiteNumberMessage").innerHTML = "<b style='color:red'>Must Select Customer and SiteNumber!</b>";
         } else {
             $.ajax({
                 method: "POST",
-                url: "CheckSiteNumber", 
+                url: "ValidateSiteNumber",
                 data: {
                     CustomerID: CustomerID, SiteNumber: SiteNumber,
                 },
@@ -390,11 +383,9 @@
                 },
                 error: function () {
                     alert('failed site number check');
-                    //if we get here, validation failed
                     $("#hiddenSiteNumberError").show();
-                    var html = '<span style="background-color: yellow" class="text-danger">Site Number <mark>' + siteNumber + '</mark> already exists!';
+                    var html = '<span style="background-color: yellow" class="text-danger">Error!';
                     document.getElementById("hiddenSiteNumberError").innerHTML = html;
-                    document.getElementById("siteNumber").value = "";
                 }
             });
         }
@@ -403,7 +394,6 @@
     function AddCustomer() {
         var Name = $("#Name").val();
         var Abbreviation = $("#BillingAddress").val();
-        //alert(" custID: " + CustomerID + " siteType: " + Name );
         document.getElementById("HiddenCustomerMessage").innerHTML = "";
         if (Name == "" || BillingAddress == "") {
             document.getElementById("HiddenCustomerMessage").style.color = "red";
@@ -417,26 +407,28 @@
                 },
                 dataType: "html",   //expect html to be returned
                 success: function (data) {
+                    if (data.success) {
+                        $("#HiddenCustomerMessage").html(data.responseText);
+                        document.getElementById("HiddenCustomerMessage").style.color = "green";
+                        $('#myModal').modal('hide');
+                    } else {
+                        $("#HiddenCustomerMessage").html(data.responseText);
+                        document.getElementById("HiddenCustomerMessage").style.color = "red";
+                    }
                     document.getElementById("Name").value = ""; //Clear input text box
                     document.getElementById("BillingAddress").value = "";
-                    $("#HiddenCustomerMessage").html(data);
-                    document.getElementById("HiddenCustomerMessage").style.color = "blue";
-                    LoadCountries();//Reload Countries DropDown
                 },
                 error: function (data) {
-                    //if we get here, validation failed
-                    alert(data);
                     $("#HiddenCountryMessage").html(data);
                 }
             });
         }
     }
 
-//MODAL FOR "ADD COUNTRY" FUNCTIONS
+
     function SubmitCountry() {
         var Name = $("#CountryName").val();
         var Abbreviation = $("#CountryAbbreviation").val();
-        //alert(" custID: " + CustomerID + " siteType: " + Name );
         document.getElementById("HiddenCountryMessage").innerHTML = "";
         if (Name == "" || Abbreviation == "") {
             document.getElementById("HiddenCountryMessage").style.color = "red";
@@ -448,38 +440,40 @@
                 data: {
                     Name: Name, Abbreviation: Abbreviation,
                 },
-                dataType: "html",   //expect html to be returned
+                dataType: "json", 
                 success: function (data) {
-                    document.getElementById("CountryName").value = ""; //Clear input text box
+                    if (data.success) {
+                        $("#HiddenCountryMessage").html(data.responseText);
+                        document.getElementById("HiddenCountryMessage").style.color = "green";
+                        $("#CountryModal").modal('hide');
+                    } else {
+                        $("#HiddenCountryMessage").html(data.responseText);
+                        document.getElementById("HiddenCountryMessage").style.color = "red";
+                    }
+                    document.getElementById("CountryName").value = ""; 
                     document.getElementById("CountryAbbreviation").value = "";
-                    $("#HiddenCountryMessage").html(data);
-                    document.getElementById("HiddenCountryMessage").style.color = "blue";
-                    LoadCountries();//Reload Countries DropDown
-
+                    LoadCountries();
                 },
                 error: function (data) {
-                    //if we get here, validation failed
-                    alert(data);
                     $("#HiddenCountryMessage").html(data);
                 }
             });
         }
     }
 
-    //IF new country added, need to delete and reload Countries Drop Down
+    
     function LoadCountries() {
         $("#CountryDD").empty();
         $.ajax({
             type: 'POST',
-            url: '@Url.Action("GetCountries")', // we are calling json method
+            url: '@Url.Action("GetCountries")',
             dataType: 'json',
-            data: {},//no data needed, loading all countries
+            data: {},
             success: function (Countries) {
                 $.each(Countries, function (i, Country) {
                     $("#CountryDD").append('<option value="' + Country.Value + '">' +
                             Country.Text + '</option>');
                 });
-                alert('trying to add Countries');
             },
             error: function (ex) {
                 alert('Failed to retrieve Countries ' + ex);
@@ -489,10 +483,9 @@
     }
 
 
-//States Modal Functions
     function CheckNewStateName($NewStateName) {
         var CountryID = $("#AddStateCountryID").val();
-        var NewStateName = $NewStateName; //$("#NewStateName").val();
+        var NewStateName = $NewStateName; 
         //alert("CountryID: " + CountryID + " ,State: " + NewStateName );
         document.getElementById("HiddenAddStateMessage").innerHTML = "";
         if (CountryID == "" || NewStateName == "") {
@@ -500,14 +493,12 @@
         } else {
             $.ajax({
                 method: "POST",
-                url: "CheckNewStateName", //Fn in Site Controller
+                url: "CheckNewStateName",
                 data: {
                     CountryID: CountryID, NewStateName: NewStateName,
                 },
-                dataType: "html",   //expect html to be returned
+                dataType: "html",   
                 success: function (data) {
-                    //alert('success at checking state name');
-                    //if siteNumber looks good = "Site Number Available", else returns longer error message
                     $("#HiddenAddStateMessage").html(data);
                     document.getElementById("HiddenSiteNumberMessage").style.color = "blue";
                 },

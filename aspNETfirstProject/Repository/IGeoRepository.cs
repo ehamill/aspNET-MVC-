@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Helpers;
 using System.Web.Mvc;
 
 namespace aspNETfirstProject.Repository
@@ -12,7 +13,7 @@ namespace aspNETfirstProject.Repository
     {
         Task<List<SelectListItem>> GetAllCountriesAsSelectListItem();
         Task<List<SelectListItem>> GetAllStatesAsSelectListItem();
-        //JsonResult AddComment(Comment comment);
-        //JsonResult DeleteComment(int Id);
+        Task<bool> ValidateCountry(Country country);
+        Task AddCountry(Country country);
     }
 }

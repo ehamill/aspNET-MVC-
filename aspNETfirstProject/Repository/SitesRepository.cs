@@ -56,7 +56,20 @@ namespace aspNETfirstProject.Repository
             await context.SaveChangesAsync();
         }
 
-       
+        public async Task<bool> ValidateSiteNumberUniqueForCustomer(string SiteNumber, int CustomerID)
+        {
+            Site site = await context.Sites
+                .Where(c => c.SiteNumber == SiteNumber) 
+                .Where(c => c.Customer.ID == CustomerID)
+                .FirstOrDefaultAsync();
+            if (site == null)
+            {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
 
     }
 }
