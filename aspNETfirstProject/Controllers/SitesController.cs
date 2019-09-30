@@ -27,7 +27,7 @@ namespace aspNETfirstProject.Controllers
             _geoRepository = geoRepository;
         }
 
-        private ApplicationDbContext db = new ApplicationDbContext();
+        //private ApplicationDbContext db = new ApplicationDbContext();
 
         // GET: Sites
         public async Task<ActionResult> Index()
@@ -161,19 +161,20 @@ namespace aspNETfirstProject.Controllers
 
         //Add new site type using ajax
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public String AddSiteType([Bind(Include = "CustomerID, Name")] SiteType sitetype)
         {
-            //Have to use int? because regular int is never null
-            int? CustomerID = sitetype.CustomerID;
-            if (CustomerID == null) {
-                return "No CustomerID";
-            }
+            
+            bool SiteTypeUnique = await _sitesRepository.ValidateSiteTypeUniqueForCustomer(sitetype)
 
-            //Check if already exists, check if THIS customer already has this siteType name
-            var check = db.SiteTypes
-                .Where(c => c.Name == sitetype.Name)
-                .Where(c => c.Customer.ID == sitetype.CustomerID)
-                .FirstOrDefault();
+            if (SiteTypeUnique)
+            {
+                return Json(new { success = true, responseText = "Ok" });
+            }
+            else
+            {
+                return Json(new { success = false, responseText = "Site already exists for this Customer!" });
+            }
 
             if (check != null)
             {
@@ -183,10 +184,10 @@ namespace aspNETfirstProject.Controllers
             {
                 db.SiteTypes.Add(sitetype);
                 db.SaveChanges();
-                return "Site Type " + sitetype.Name + " added!";
+                Json(new { success = true, responseText = "SiteType added" });
             }
             else {
-                return "Error. Cannot add Site Type";
+                Json(new { success = false, responseText = "SiteType missing fields!" });
             }
         }
 
@@ -220,6 +221,7 @@ namespace aspNETfirstProject.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<JsonResult> AddCountry([Bind(Include = "Name, Abbreviation")] Country country)
         {
            
@@ -249,104 +251,59 @@ namespace aspNETfirstProject.Controllers
 
     public async Task<JsonResult> GetCountries()
     {
-            //var Countries = db.Countries
-            //    .OrderBy(r => r.Name)
-            //    .Select(rr => new SelectListItem
-            //    {
-            //        Value = rr.ID.ToString(),
-            //        Text = rr.Name
-            //    }).ToList();
-            //return Json(new SelectList(Countries, "Value", "Text"));
             return Json(await _geoRepository.GetAllCountriesAsSelectListItem());
     }
-
-    //Check if SiteNumber already exists for this Customer
+        
     [HttpPost]
-    public String CheckNewStateName(int? CountryID, String NewStateName)
+    public async Task<JsonResult> VerifyNewStateName([Bind(Include = "CountryID, Name, Abbreviation")] State state)
     {
-        //Have to use int? because regular int is never null 
-        if (CountryID == null || NewStateName == null)
-        {
-            return "<b style='color:red'>Must Select COUNTRY And STATE NAME!</b>"; //Should never get here
-        }
+            bool StateUnique = await _geoRepository.ValidateStateUnique(state);
 
-        //Check States Table to see if the COUNTRY already has this STATE
-        var check = db.States
-            .Where(c => c.CountryID == CountryID) //AND
-            .Where(c => c.Name == NewStateName)
-            .FirstOrDefault();
-
-        if (check != null)
-        {
-            return "<b style='color:red'> STATE NAME Already Taken!</b>";
+            if (StateUnique)
+            {
+                return Json(new { success = true, responseText = "Ok" });
+            }
+            else
+            {
+                return Json(new { success = false, responseText = "State already exists for this Country!" });
+            }
         }
-        else
-        {
-            return "<span style='color:green'>State Name Looks Bueno!</span>";
-        }
-    }
 
     [HttpPost]
-    public String AddState([Bind(Include = "CountryID, Name, Abbreviation")] State state )
+    [ValidateAntiForgeryToken]
+    public async Task<JsonResult> AddState([Bind(Include = "CountryID, Name, Abbreviation")] State state )
     {
-         //Have to use int? because regular int is never null (it will be 0)
-        //int? NullableCountryID = state.CountryID;
-      //      return "<b style='color:red'>Must enter country, name, and abbrev! </b>";
-        if ( state.CountryID == null ||  state.Name == null || state.Abbreviation == null)
-        {
-            return "<b style='color:red'>Must enter country, name, and abbrev! </b>";
-        }
 
-        //Check if already exists...
-        var check = db.States
-            .Where(c => c.CountryID == state.CountryID) // AND ..
-            .Where(c => c.Name == state.Name) 
-            .FirstOrDefault();
-
-        if (check != null)
-        {
-            return "<b style='color:red'>State already exists for this country!</b>";
-        }
         if (ModelState.IsValid)
         {
-            //int NewCountryID = CountryID.Value;
-            //var NewState = new State
-            //{
-                
-            //    CountryID = NewCountryID,
-            //    Name = NewStateName,
-            //    Abbreviation = Abbreviation,
-            //};
-            //    State NewState =
-            db.States.Add(state);
-            db.SaveChanges();
-            //string Message = "Site Type " + sitetype + " added!";
-            return "State " + state.Name + " added!";
-        }
-        else
-        {
-            return "<b style='color:red'>Error. Cannot add State</b>";
-        }
-    }
+            bool StateUnique = await _geoRepository.ValidateStateUnique(state);
 
-    public JsonResult GetStates(int CountryID)
-    {
-        var States = db.States
-            .Where(c =>c.CountryID == CountryID)
-            .OrderBy(r => r.Name)
-            .Select(rr => new SelectListItem
+            if (StateUnique == false)
             {
-                Value = rr.ID.ToString(),
-                Text = rr.Name
-            }).ToList();
-        return Json(new SelectList(States, "Value", "Text"));
+                return Json(new { success = false, responseText = "State already exists for this Country!" });
+            }
+
+            try
+            {
+                await _geoRepository.AddState(state);
+                return Json(new { success = true, responseText = "Ok" });
+            }
+            catch (Exception ex)
+            {
+                throw new HttpException("Unable to Add Country. " + ex);
+            }
+                
+        }
+        return Json(new { success = false, responseText = "<b style='color:red'>Must enter country, name, and abbrev! </b>" });
+            
     }
 
-        /// END AJAX STUFF
-
-
-
-
+    public async Task<JsonResult>  GetStates(int CountryID)
+    {
+            return Json(await _geoRepository.GetAllStatesAsSelectListItem());
+        
+    }
+       
         // GET: Sites/Edit/5
         public ActionResult Edit(int? id)
         {

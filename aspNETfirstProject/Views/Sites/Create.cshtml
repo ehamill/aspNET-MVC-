@@ -52,16 +52,6 @@
                 @Html.ValidationMessageFor(model => model.SiteNumber, "", new { @class = "text-danger" })
             </div>
         </div>
-        @*
-            <div class="form-group">
-                @Html.LabelFor(model => model.CountryID, "Country", new { @class = "control-label col-md-2" })
-                <div class="col-md-10">
-                    @Html.DropDownListFor(m => m.CountryID, Model.Countries, "-- Select Country --")
-                    @Html.ValidationMessageFor(model => model.CountryID, "", new { @class = "text-danger" }) &nbsp; &nbsp;
-                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#CountryModal"> Add Country </button>
-                </div>
-            </div>
-        *@
         <div class="form-group">
             @Html.LabelFor(model => model.CountryID, "Country", new { @class = "control-label col-md-2" })
             <div class="col-md-10">
@@ -294,12 +284,19 @@
 
     </div>
  
+
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "__AjaxAntiForgeryForm" }))
+{
+    @Html.AntiForgeryToken()
+}
+
+
 <script type="text/javascript">
-    //Need jquery for this...Not installed by default in mvc5.. add scripts for jquery in header or add the bundle
+
     $(document).ready(function () {
-        //Dropdownlist Selectedchange event
+
         $("#CustomerID").change(function () {
-            LoadSiteTypes(); //Calls JS fn below
+            LoadSiteTypes(); 
         });
         $("#Country").change(function () {
             LoadStates();
@@ -308,10 +305,10 @@
 
 
     function LoadSiteTypes() {
-        $("#SiteTypeID").empty(); //Clear SiteType DD box
+        $("#SiteTypeID").empty(); 
         $.ajax({
             type: 'POST',
-            url: '@Url.Action("GetSiteTypes")', // we are calling json method in Controller
+            url: '@Url.Action("GetSiteTypes")', 
             dataType: 'json',
             data: { CustomerID: $("#CustomerID").val() },
             success: function (SiteTypes) {
@@ -330,7 +327,8 @@
 
     function SubmitSiteType() {
         var CustomerID = $("#SiteTypeCustomerID").val(); 
-        var Name = $("#SiteTypeName").val(); 
+        var Name = $("#SiteTypeName").val();
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
         document.getElementById("HiddenSiteTypeMessage").innerHTML = "";
         if (Name == "" || CustomerID == "") {
             document.getElementById("HiddenSiteTypeMessage").style.color = "red";
@@ -340,7 +338,7 @@
                 method: "POST",
                 url: "AddSiteType",
                 data: {
-                    CustomerID: CustomerID, Name: Name,
+                    CustomerID: CustomerID, Name: Name, __RequestVerificationToken: token
                 },
                 dataType: "json", 
                 success: function (data) {
@@ -361,9 +359,9 @@
    
     function CheckSiteNumber(SiteNumber) {
         var CustomerID = $("#CustomerID").val(); 
-        document.getElementById("HiddenSiteNumberMessage").innerHTML = "";
+        $("#HiddenSiteNumberMessage").html("");
         if (CustomerID == "" ||  SiteNumber == "") {
-            document.getElementById("HiddenSiteNumberMessage").innerHTML = "<b style='color:red'>Must Select Customer and SiteNumber!</b>";
+            $("#HiddenSiteNumberMessage").html("<b style='color:red'>Must Select Customer and SiteNumber!</b>");
         } else {
             $.ajax({
                 method: "POST",
@@ -394,6 +392,7 @@
     function AddCustomer() {
         var Name = $("#Name").val();
         var Abbreviation = $("#BillingAddress").val();
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
         document.getElementById("HiddenCustomerMessage").innerHTML = "";
         if (Name == "" || BillingAddress == "") {
             document.getElementById("HiddenCustomerMessage").style.color = "red";
@@ -403,9 +402,9 @@
                 method: "POST",
                 url: "AddCustomer",
                 data: {
-                    Name: Name, BillingAddress: BillingAddress,
+                    Name: Name, BillingAddress: BillingAddress, __RequestVerificationToken: token
                 },
-                dataType: "html",   //expect html to be returned
+                dataType: "json",   
                 success: function (data) {
                     if (data.success) {
                         $("#HiddenCustomerMessage").html(data.responseText);
@@ -429,6 +428,7 @@
     function SubmitCountry() {
         var Name = $("#CountryName").val();
         var Abbreviation = $("#CountryAbbreviation").val();
+        var token = $('input[name="__RequestVerificationToken"]', form).val();
         document.getElementById("HiddenCountryMessage").innerHTML = "";
         if (Name == "" || Abbreviation == "") {
             document.getElementById("HiddenCountryMessage").style.color = "red";
@@ -438,7 +438,7 @@
                 method: "POST",
                 url: "AddCountry",
                 data: {
-                    Name: Name, Abbreviation: Abbreviation,
+                    Name: Name, Abbreviation: Abbreviation, __RequestVerificationToken: token
                 },
                 dataType: "json", 
                 success: function (data) {
@@ -483,32 +483,34 @@
     }
 
 
-    function CheckNewStateName($NewStateName) {
+    function CheckNewStateName(NewStateName) {
         var CountryID = $("#AddStateCountryID").val();
-        var NewStateName = $NewStateName; 
-        //alert("CountryID: " + CountryID + " ,State: " + NewStateName );
-        document.getElementById("HiddenAddStateMessage").innerHTML = "";
+        var Name = $("#NewStateName").val();
+        var Abbreviation = $("#StateAbbreviation").val();
+        $("#HiddenAddStateMessage").html("");
         if (CountryID == "" || NewStateName == "") {
-            document.getElementById("HiddenAddStateMessage").innerHTML = "<b style='color:red'>Must Select Country and enter state!</b>";
+            $("#HiddenAddStateMessage").html("<b style='color:red'>Must Select Country and enter state!</b>");
         } else {
             $.ajax({
                 method: "POST",
-                url: "CheckNewStateName",
+                url: "VerifyNewStateName",
                 data: {
-                    CountryID: CountryID, NewStateName: NewStateName,
+                    CountryID: CountryID, Name: Name, Abbreviation: Abbreviation
                 },
-                dataType: "html",   
+                dataType: "json",   
                 success: function (data) {
-                    $("#HiddenAddStateMessage").html(data);
-                    document.getElementById("HiddenSiteNumberMessage").style.color = "blue";
+                    if (data.success) {
+                        $("#HiddenAddStateMessage").html("Site is unique.");
+                        document.getElementById("HiddenAddStateMessage").style.color = "green";
+                    } else {
+                        $("#HiddenAddStateMessage").html(data.responseText);
+                        document.getElementById("HiddenAddStateMessage").style.color = "red";
+                    }
                 },
-                error: function () {
-                    alert('failed State NAME check');
-                    //if we get here, validation failed
+                error: function (data) {
+                    alert('Failed State NAME check');
                     $("#HiddenAddStateMessage").show();
-                    var html = '<span style="background-color: yellow" class="text-danger">State <mark>' + NewStateName + '</mark> already exists!';
-                    document.getElementById("HiddenAddStateMessage").innerHTML = html;
-                    document.getElementById("NewStateName").value = "";
+                    $("#HiddenAddStateMessage").html(data.responseText);
                 }
             });
         }
@@ -519,7 +521,6 @@
         var CountryID = $("#AddStateCountryID").val();
         var Name = $("#NewStateName").val();
         var Abbreviation = $("#StateAbbreviation").val();
-        //alert("CountryID: " + CountryID + " ,State: " + Name + ", Abbrev: " + Abbreviation);
         document.getElementById("HiddenAddStateMessage").innerHTML = "";
 
         if (Name == ""  || Abbreviation == "") {
@@ -531,18 +532,23 @@
                 url: "AddState",
                 data: {
                     CountryID: CountryID, Name: Name, Abbreviation: Abbreviation,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]', form).val()
                 },
-                dataType: "html",   //expect html to be returned
+                dataType: "json", 
                 success: function (data) {
-                    document.getElementById("NewStateName").value = ""; //Clear input text box
+                    if (data.success) {
+                        $("#HiddenAddStateMessage").html("Site is unique.");
+                        document.getElementById("HiddenAddStateMessage").style.color = "green";
+                    } else {
+                        $("#HiddenAddStateMessage").html(data.responseText);
+                        document.getElementById("HiddenAddStateMessage").style.color = "red";
+                    }
+                    document.getElementById("NewStateName").value = ""; 
                     document.getElementById("StateAbbreviation").value = "";
-                    $("#HiddenAddStateMessage").html(data);
-                    document.getElementById("HiddenAddStateMessage").style.color = "blue";
-                    LoadStates();//Reload DropDown
+                    LoadStates();
                 },
                 error: function (data) {
-                    //if we get here, validation failed
-                    $("#HiddenAddStateMessage").html(data);
+                    $("#HiddenAddStateMessage").html("Cannot add new State at this time. Please contact support.");
                 }
             });
         }
@@ -551,12 +557,11 @@
     function LoadStates() {
         $("#StateID").empty();
         var CountryID = $("#CountryDD").val();
-        //alert("CountryID: " + CountryID );
         $.ajax({
             type: 'POST',
-            url: '@Url.Action("GetStates")', // we are calling json method
+            url: '@Url.Action("GetStates")', 
             dataType: 'json',
-            data: { CountryID },//no data needed, loading all countries
+            data: { CountryID },
             success: function (States) {
                 $.each(States, function (i, State) {
                     $("#StateID").append('<option value="' + State.Value + '">' +
@@ -571,27 +576,23 @@
     }
 
 
-    //After StateDropDown selected, this fn loads cities drop down
     function loadCities($stateID) {
         $("#addNewCityLink").show();
-        var countryID = $("#countryDD").val(); //get countryID selected value
+        var countryID = $("#countryDD").val();
         var stateID = $stateID;
-        //		alert("CountryID: " + countryID + " StateID: " + stateID);
-
         $.ajax({
             method: "POST",
-            url: "load_cities", //Goes to routes.php, and to ajaxController, Route::POST('load_site_types', 'AjaxControllerATload_site_types');
+            url: "load_cities",
             data: {
-                _token: "{{ csrf_token() }}",   // MUST PASS TOKEN! or get internal 500 error
+                _token: "{{ csrf_token() }}",   
                 countryID: countryID, stateID: stateID,
             },
-            dataType: "html",   //expect html to be returned
+            dataType: "html",  
             success: function (data) {
-                //alert('success');
                 $("#hiddenCities").html(data);
             },
             error: function () {
-                //alert('failed to load cities');
+                alert('failed to load cities');
             }
         });
     }

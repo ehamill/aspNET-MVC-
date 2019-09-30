@@ -14,6 +14,8 @@ namespace aspNETfirstProject.Repository
         Task<List<SelectListItem>> GetAllCountriesAsSelectListItem();
         Task<List<SelectListItem>> GetAllStatesAsSelectListItem();
         Task<bool> ValidateCountry(Country country);
+        Task<bool> ValidateStateUnique(State state);
         Task AddCountry(Country country);
+        Task AddState(State state);
     }
 }

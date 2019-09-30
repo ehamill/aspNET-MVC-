@@ -57,12 +57,37 @@ namespace aspNETfirstProject.Repository
             }
         }
 
+        public async Task<bool> ValidateStateUnique(State state)
+        {
+            var check = await context.States
+            .Where(c => c.CountryID == state.CountryID && (c.Name.ToLower() == state.Name.ToLower() || c.Abbreviation.ToLower() == state.Abbreviation.ToLower()))
+            .FirstOrDefaultAsync();
+
+            if (check == null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public async Task AddCountry(Country country)
         {
             context.Countries.Add(country);
             await context.SaveChangesAsync();
         }
 
+        //    var States = db.States
+        //    .Where(c =>c.CountryID == CountryID)
+        //    .OrderBy(r => r.Name)
+        //    .Select(rr => new SelectListItem
+        //    {
+        //        Value = rr.ID.ToString(),
+        //        Text = rr.Name
+        //    }).ToList();
+        //return Json(new SelectList(States, "Value", "Text"));
         //public void UpdateSite(Site site)
         //{
         //    context.Sites.Add(site);

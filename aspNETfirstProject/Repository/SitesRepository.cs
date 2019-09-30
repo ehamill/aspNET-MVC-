@@ -71,5 +71,20 @@ namespace aspNETfirstProject.Repository
             }
         }
 
+        public async Task<bool> ValidateSiteTypeUniqueForCustomer(SiteType siteType)
+        {
+            SiteType check = await context.SiteTypes
+                .Where(c => c.Customer.ID == siteType.CustomerID && c.Name.ToLower() == siteType.Name.ToLower())
+                .FirstOrDefaultAsync();
+            if (check == null)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
     }
 }
