@@ -86,5 +86,23 @@ namespace aspNETfirstProject.Repository
             }
         }
 
+        public async Task AddSiteType(SiteType siteType)
+        {
+            context.SiteTypes.Add(siteType);
+            await context.SaveChangesAsync();
+        }
+
+        public async Task<List<SelectListItem>> GetAllSiteTypesAsSelectListItem(int CustomerID)
+        {
+            List<SelectListItem> siteTypes = await context.SiteTypes.Where(c => c.Customer.ID == CustomerID)
+                .OrderBy(r => r.Name)
+                .Select(rr => new SelectListItem
+                {
+                    Value = rr.ID.ToString(),
+                    Text = rr.Name
+                }).ToListAsync();
+            
+            return siteTypes;
+        }
     }
 }

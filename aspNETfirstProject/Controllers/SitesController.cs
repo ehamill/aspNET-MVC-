@@ -162,46 +162,27 @@ namespace aspNETfirstProject.Controllers
         //Add new site type using ajax
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public String AddSiteType([Bind(Include = "CustomerID, Name")] SiteType sitetype)
+        public async Task<JsonResult> AddSiteType([Bind(Include = "CustomerID, Name")] SiteType siteType)
         {
-            
-            bool SiteTypeUnique = await _sitesRepository.ValidateSiteTypeUniqueForCustomer(sitetype)
 
-            if (SiteTypeUnique)
-            {
-                return Json(new { success = true, responseText = "Ok" });
-            }
-            else
+            bool SiteTypeUnique = await _sitesRepository.ValidateSiteTypeUniqueForCustomer(siteType);
+
+            if (!SiteTypeUnique)
             {
                 return Json(new { success = false, responseText = "Site already exists for this Customer!" });
             }
-
-            if (check != null)
-            {
-                return "Site Type already exists for this Customer.";
-            }
+            
             if (ModelState.IsValid)
             {
-                db.SiteTypes.Add(sitetype);
-                db.SaveChanges();
-                Json(new { success = true, responseText = "SiteType added" });
+                await _sitesRepository.AddSiteType(siteType);
+                return Json(new { success = true, responseText = "SiteType added" });
             }
             else {
-                Json(new { success = false, responseText = "SiteType missing fields!" });
+                return  Json(new { success = false, responseText = "SiteType missing fields!" });
             }
         }
 
-    public JsonResult GetSiteTypes(int CustomerID)
-    {
-        var SiteTypes = db.SiteTypes.Where(c => c.Customer.ID == CustomerID)
-            .OrderBy(r => r.Name)
-            .Select(rr => new SelectListItem
-            {
-                Value = rr.ID.ToString(),
-                Text = rr.Name
-            }).ToList();
-        return Json(new SelectList(SiteTypes, "Value", "Text"));
-    }
+    
 
     
         //Check if SiteNumber already exists for this Customer
@@ -249,14 +230,19 @@ namespace aspNETfirstProject.Controllers
             return Json(new { success = false, responseText = "Country error!" });
         }
 
-    public async Task<JsonResult> GetCountries()
-    {
-            return Json(await _geoRepository.GetAllCountriesAsSelectListItem());
-    }
-        
-    [HttpPost]
-    public async Task<JsonResult> VerifyNewStateName([Bind(Include = "CountryID, Name, Abbreviation")] State state)
-    {
+        public async Task<JsonResult> GetCountries()
+        {
+                return Json(await _geoRepository.GetAllCountriesAsSelectListItem());
+        }
+
+        public async Task<JsonResult> GetSiteTypes(int CustomerID)
+        {
+            return Json(await _sitesRepository.GetAllSiteTypesAsSelectListItem(CustomerID));
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> VerifyNewStateName([Bind(Include = "CountryID, Name, Abbreviation")] State state)
+        {
             bool StateUnique = await _geoRepository.ValidateStateUnique(state);
 
             if (StateUnique)
@@ -269,87 +255,56 @@ namespace aspNETfirstProject.Controllers
             }
         }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<JsonResult> AddState([Bind(Include = "CountryID, Name, Abbreviation")] State state )
-    {
-
-        if (ModelState.IsValid)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> AddState([Bind(Include = "CountryID, Name, Abbreviation")] State state )
         {
-            bool StateUnique = await _geoRepository.ValidateStateUnique(state);
 
-            if (StateUnique == false)
+            if (ModelState.IsValid)
             {
-                return Json(new { success = false, responseText = "State already exists for this Country!" });
-            }
+                bool StateUnique = await _geoRepository.ValidateStateUnique(state);
 
-            try
-            {
-                await _geoRepository.AddState(state);
-                return Json(new { success = true, responseText = "Ok" });
-            }
-            catch (Exception ex)
-            {
-                throw new HttpException("Unable to Add Country. " + ex);
-            }
+                if (StateUnique == false)
+                {
+                    return Json(new { success = false, responseText = "State already exists for this Country!" });
+                }
+
+                try
+                {
+                    await _geoRepository.AddState(state);
+                    return Json(new { success = true, responseText = "Ok" });
+                }
+                catch (Exception ex)
+                {
+                    throw new HttpException("Unable to Add Country. " + ex);
+                }
                 
-        }
-        return Json(new { success = false, responseText = "<b style='color:red'>Must enter country, name, and abbrev! </b>" });
+            }
+            return Json(new { success = false, responseText = "<b style='color:red'>Must enter country, name, and abbrev! </b>" });
             
-    }
+        }
 
-    public async Task<JsonResult>  GetStates(int CountryID)
-    {
-            return Json(await _geoRepository.GetAllStatesAsSelectListItem());
+        public async Task<JsonResult>  GetStates(int CountryID)
+        {
+                return Json(await _geoRepository.GetAllStatesAsSelectListItem());
         
-    }
+        }
        
         // GET: Sites/Edit/5
-        public ActionResult Edit(int? id)
+        public async Task<ActionResult>  Edit(int id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Site site = db.Sites.Find(id);
-            if (site == null)
-            {
+            Site site = await _sitesRepository.GetSite(id);
+            if (site == null) {
                 return HttpNotFound();
             }
-
             ViewBag.SiteID = site.ID;
+            List<SelectListItem> customers = await _customersRepository.GetAllCustomersAsSelectListItem();
 
-            List<SelectListItem> customers = new List<SelectListItem>();
-            customers = db.Customers.OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
+            List<SelectListItem> siteTypes = await _sitesRepository.GetAllSiteTypesAsSelectListItem(site.CustomerID ?? 0);
 
-            List<SelectListItem> siteTypes = new List<SelectListItem>();
-            siteTypes = db.SiteTypes.Where(s => s.CustomerID == site.CustomerID).OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
+            List<SelectListItem> countries = await _geoRepository.GetAllCountriesAsSelectListItem();
 
-            List<SelectListItem> countries = new List<SelectListItem>();
-            countries = db.Countries.OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
-
-            List<SelectListItem> states = new List<SelectListItem>();
-            states = db.States.Where(s=> s.CountryID == site.CountryID).OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
+            List<SelectListItem> states = await _geoRepository.GetAllStatesAsSelectListItem();
 
 
             var model = new CreateSiteViewModel
@@ -372,47 +327,29 @@ namespace aspNETfirstProject.Controllers
         // POST: Sites/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "ID,CustomerID, SiteTypeID,SiteNumber,CountryID,StateID, City,Address, Zip")] Site site)
+        public async Task<ActionResult> Edit([Bind(Include = "ID,CustomerID, SiteTypeID,SiteNumber,CountryID,StateID, City,Address, Zip")] Site site)
         {
             if (ModelState.IsValid)
             {
-                db.Entry(site).State = EntityState.Modified;
-                db.SaveChanges();
-                return RedirectToAction("Index");
+                try
+                {
+                    await _sitesRepository.UpdateSite(site);
+                    return RedirectToAction("Index");
+                }
+                catch (Exception ex)
+                {
+                    throw new HttpException("Unable to Add Country. " + ex);
+                }
             }
             ViewBag.SiteID = site.ID;
 
-            List<SelectListItem> customers = new List<SelectListItem>();
-            customers = db.Customers.OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
+            List<SelectListItem> customers = await _customersRepository.GetAllCustomersAsSelectListItem();
 
-            List<SelectListItem> siteTypes = new List<SelectListItem>();
-            siteTypes = db.SiteTypes.Where(s => s.CustomerID == site.CustomerID).OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
+            List<SelectListItem> siteTypes = await _sitesRepository.GetAllSiteTypesAsSelectListItem(site.CustomerID ?? 0);
 
-            List<SelectListItem> countries = new List<SelectListItem>();
-            countries = db.Countries.OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
+            List<SelectListItem> countries = await _geoRepository.GetAllCountriesAsSelectListItem();
 
-            List<SelectListItem> states = new List<SelectListItem>();
-            states = db.States.Where(s => s.CountryID == site.CountryID).OrderBy(r => r.Name)
-                    .Select(rr => new SelectListItem
-                    {
-                        Value = rr.ID.ToString(),
-                        Text = rr.Name,
-                    }).ToList();
+            List<SelectListItem> states = await _geoRepository.GetAllStatesAsSelectListItem();
 
 
             var model = new CreateSiteViewModel
@@ -433,13 +370,9 @@ namespace aspNETfirstProject.Controllers
         }
 
         // GET: Sites/Delete/5
-        public ActionResult Delete(int? id)
+        public async Task<ActionResult> Delete(int id)
         {
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
-            Site site = db.Sites.Find(id);
+            Site site = await _sitesRepository.GetSite(id);
             if (site == null)
             {
                 return HttpNotFound();
@@ -450,22 +383,31 @@ namespace aspNETfirstProject.Controllers
         // POST: Sites/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        public async Task<ActionResult> DeleteConfirmed(int id)
         {
-            Site site = db.Sites.Find(id);
-            db.Sites.Remove(site);
-            db.SaveChanges();
-            return RedirectToAction("Index");
+            Site site = await _sitesRepository.GetSite(id);
+            if (site == null) {
+                return HttpNotFound();
+            }
+            try
+            {
+                await _sitesRepository.DeleteSite(site);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                throw new HttpException("Unable to Add Country. " + ex);
+            }
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+        //protected override void Dispose(bool disposing)
+        //{
+        //    if (disposing)
+        //    {
+        //        db.Dispose();
+        //    }
+        //    base.Dispose(disposing);
+        //}
     }
     
 }

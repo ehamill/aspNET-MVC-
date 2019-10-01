@@ -79,26 +79,12 @@ namespace aspNETfirstProject.Repository
             await context.SaveChangesAsync();
         }
 
-        //    var States = db.States
-        //    .Where(c =>c.CountryID == CountryID)
-        //    .OrderBy(r => r.Name)
-        //    .Select(rr => new SelectListItem
-        //    {
-        //        Value = rr.ID.ToString(),
-        //        Text = rr.Name
-        //    }).ToList();
-        //return Json(new SelectList(States, "Value", "Text"));
-        //public void UpdateSite(Site site)
-        //{
-        //    context.Sites.Add(site);
-        //     context.SaveChanges();
-        //}
-
-        //public void DeleteSite(Site site)
-        //{
-        //    context.Sites.Remove(site);
-        //    context.SaveChanges();
-        //}
+        public async Task AddState(State state)
+        {
+            context.States.Add(state);
+            await context.SaveChangesAsync();
+        }
+       
 
     }
 }
