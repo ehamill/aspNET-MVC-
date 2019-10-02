@@ -1,4 +1,5 @@
-﻿using aspNETfirstProject.Models;
+﻿using aspNETfirstProject.Controllers;
+using aspNETfirstProject.Models;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -26,9 +27,19 @@ namespace aspNETfirstProject.Repository
             return sites;
         }
 
-        public async Task<IEnumerable<Site>>  GetSitesAsIEnumerable()
+        public async Task<IList<Site>>  GetFilteredSites(SiteSearchViewModel SearchModel)
         {
-            return await context.Sites.ToListAsync();
+            var sites = from s in context.Sites
+                        select s;
+            if (SearchModel.CustomerID.HasValue)
+                sites = sites.Where(x => x.CustomerID == SearchModel.CustomerID);
+            if (SearchModel.SiteNumber != null)
+                sites = sites.Where(x => x.SiteNumber.Contains(SearchModel.SiteNumber));
+            if (SearchModel.CountryID.HasValue)
+                sites = sites.Where(x => x.CountryID == SearchModel.CountryID);
+            if (SearchModel.StateID.HasValue)
+                sites = sites.Where(x => x.StateID == SearchModel.StateID);
+            return await sites.ToListAsync();
         }
 
 

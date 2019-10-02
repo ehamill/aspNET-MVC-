@@ -1,4 +1,5 @@
-﻿using aspNETfirstProject.Models;
+﻿using aspNETfirstProject.Controllers;
+using aspNETfirstProject.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ namespace aspNETfirstProject.Repository
     public interface ISitesRepository
     {
         Task<IList<Site>> GetAllSites();
-        Task<IEnumerable<Site>> GetSitesAsIEnumerable();
+        Task<IList<Site>> GetFilteredSites(SiteSearchViewModel SearchModel);
         Task<Site> GetSite(int id);
         Task AddSite(Site site);
         Task UpdateSite(Site site);

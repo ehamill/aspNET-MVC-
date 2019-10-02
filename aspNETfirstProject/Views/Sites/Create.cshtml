@@ -111,7 +111,8 @@
         </div>
     </div>
 } 
-<!-- END ADD SITE FORM -->      
+
+
 
         <!-- Add Customer Modal -->
         <div id="myModal" class="modal fade" role="dialog">
@@ -328,7 +329,7 @@
     function SubmitSiteType() {
         var CustomerID = $("#SiteTypeCustomerID").val(); 
         var Name = $("#SiteTypeName").val();
-        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var token = $('input[name="__RequestVerificationToken"]').val();
         document.getElementById("HiddenSiteTypeMessage").innerHTML = "";
         if (Name == "" || CustomerID == "") {
             document.getElementById("HiddenSiteTypeMessage").style.color = "red";
@@ -344,7 +345,7 @@
                 success: function (data) {
                     if (data.success) {
                         $("#HiddenSiteTypeMessage").html(data.responseText);
-                        $("#SiteTypeModal").modal('hide'); 
+                        $("#SiteTypeModal").modal('hide');
                     } else {
                         $("#HiddenSiteTypeMessage").html(data.responseText);
                     }
@@ -392,7 +393,7 @@
     function AddCustomer() {
         var Name = $("#Name").val();
         var Abbreviation = $("#BillingAddress").val();
-        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var token = $('input[name="__RequestVerificationToken"]').val();
         document.getElementById("HiddenCustomerMessage").innerHTML = "";
         if (Name == "" || BillingAddress == "") {
             document.getElementById("HiddenCustomerMessage").style.color = "red";
@@ -428,7 +429,7 @@
     function SubmitCountry() {
         var Name = $("#CountryName").val();
         var Abbreviation = $("#CountryAbbreviation").val();
-        var token = $('input[name="__RequestVerificationToken"]', form).val();
+        var token = $('input[name="__RequestVerificationToken"]').val();
         document.getElementById("HiddenCountryMessage").innerHTML = "";
         if (Name == "" || Abbreviation == "") {
             document.getElementById("HiddenCountryMessage").style.color = "red";
@@ -445,7 +446,7 @@
                     if (data.success) {
                         $("#HiddenCountryMessage").html(data.responseText);
                         document.getElementById("HiddenCountryMessage").style.color = "green";
-                        $("#CountryModal").modal('hide');
+                        $("#CountryModal").modal('hide'); 
                     } else {
                         $("#HiddenCountryMessage").html(data.responseText);
                         document.getElementById("HiddenCountryMessage").style.color = "red";
@@ -532,13 +533,12 @@
                 url: "AddState",
                 data: {
                     CountryID: CountryID, Name: Name, Abbreviation: Abbreviation,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]', form).val()
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                 },
                 dataType: "json", 
                 success: function (data) {
                     if (data.success) {
-                        $("#HiddenAddStateMessage").html("Site is unique.");
-                        document.getElementById("HiddenAddStateMessage").style.color = "green";
+                        $("#StateModal").modal('hide'); 
                     } else {
                         $("#HiddenAddStateMessage").html(data.responseText);
                         document.getElementById("HiddenAddStateMessage").style.color = "red";

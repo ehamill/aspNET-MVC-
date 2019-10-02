@@ -26,9 +26,7 @@ namespace aspNETfirstProject.Controllers
             _customersRepository = customersRepository;
             _geoRepository = geoRepository;
         }
-
-        //private ApplicationDbContext db = new ApplicationDbContext();
-
+        
         // GET: Sites
         public async Task<ActionResult> Index()
         {
@@ -54,17 +52,7 @@ namespace aspNETfirstProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult>  Index(SiteSearchViewModel SearchModel)
         {
-            var sites = from s in await _sitesRepository.GetSitesAsIEnumerable()
-                           select s;
-
-            if (SearchModel.CustomerID.HasValue)
-                sites = sites.Where(x => x.CustomerID == SearchModel.CustomerID);
-            if (SearchModel.SiteNumber != null)
-                sites = sites.Where(x => x.SiteNumber.Contains(SearchModel.SiteNumber) );
-            if (SearchModel.CountryID.HasValue)
-                sites = sites.Where(x => x.CountryID == SearchModel.CountryID);
-            if (SearchModel.StateID.HasValue)
-                sites = sites.Where(x => x.StateID == SearchModel.StateID);
+            IList<Site> sites = await _sitesRepository.GetFilteredSites(SearchModel);
 
             List<SelectListItem> customers = await _customersRepository.GetAllCustomersAsSelectListItem();
             List<SelectListItem> countries = await _geoRepository.GetAllCountriesAsSelectListItem();
@@ -72,7 +60,7 @@ namespace aspNETfirstProject.Controllers
             
             var model = new IndexSiteViewModel
             {
-                Sites = sites.ToList(),
+                Sites = sites,
                 Customers = customers,
                 CustomerID = SearchModel.CountryID,
                 SiteNumber = SearchModel.SiteNumber,
@@ -116,7 +104,6 @@ namespace aspNETfirstProject.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(Site site)
         {
-            site.SiteNumber = null;
             if (ModelState.IsValid)
             {
                 try {
@@ -183,9 +170,6 @@ namespace aspNETfirstProject.Controllers
         }
 
     
-
-    
-        //Check if SiteNumber already exists for this Customer
         [HttpPost]
         public async Task<JsonResult> ValidateSiteNumber(int CustomerID, String SiteNumber)
         {
@@ -399,15 +383,7 @@ namespace aspNETfirstProject.Controllers
                 throw new HttpException("Unable to Add Country. " + ex);
             }
         }
-
-        //protected override void Dispose(bool disposing)
-        //{
-        //    if (disposing)
-        //    {
-        //        db.Dispose();
-        //    }
-        //    base.Dispose(disposing);
-        //}
+        
     }
     
 }

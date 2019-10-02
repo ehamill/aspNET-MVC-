@@ -36,30 +36,6 @@ namespace aspNETfirstProject.Repository
              context.Customers.Add(customer);
             await context.SaveChangesAsync();
         }
-
-        //public async Task<Site> GetSite(int id)
-        //{
-        //    Site site = await context.Sites.FindAsync(id);
-        //    return site;
-        //}
-
-        //public void AddCustomer(Customer customer)
-        //{
-        //    context.Sites.Add(site);
-        //     context.SaveChanges();
-        //}
-
-        //public void UpdateSite(Site site)
-        //{
-        //    context.Sites.Add(site);
-        //     context.SaveChanges();
-        //}
-
-        //public void DeleteSite(Site site)
-        //{
-        //    context.Sites.Remove(site);
-        //    context.SaveChanges();
-        //}
-
+        
     }
 }

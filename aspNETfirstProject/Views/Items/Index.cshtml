@@ -83,14 +83,13 @@
                     <a href="#0" class="btn btn-success" onclick="show_add_comment_form(@(item.ID))">
                         Add a Comment <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
                     </a>
-
-                    <!-- hidden "add comment form" -->
+                    
                     <div id="hiddenAddComment@(item.ID)" style="display: none">
                         <textarea id="newComment@(item.ID)" rows="4"style="width:100%"></textarea>
                         <button onclick="add_comment(@item.ID)" >Submit</button>
                     </div>
 
-                } <!-- End hidden links if user logged in -->
+                } 
                 <button  onclick="show_comments(@item.ID)" class="btn-into">Show Comments</button>
               
                 <div id="HiddenComments@(item.ID)"></div>
