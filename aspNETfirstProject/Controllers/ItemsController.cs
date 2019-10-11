@@ -66,7 +66,6 @@ namespace aspNETfirstProject.Controllers
             }
 
             item.Approved = false;
-            string currentUserId = User.Identity.GetUserId();
             if (User.IsInRole("admin"))
             {
                 item.Approved = true;
