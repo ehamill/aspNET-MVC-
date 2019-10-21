@@ -44,7 +44,7 @@ namespace aspNETfirstProject.Repository
 
         public async Task UpdateItem(Item item)
         {
-          
+
             context.Entry(item).State = EntityState.Modified;
             await context.SaveChangesAsync();
         }
