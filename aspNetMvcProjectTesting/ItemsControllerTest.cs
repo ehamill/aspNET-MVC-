@@ -268,7 +268,47 @@ namespace aspNetMvcProjectTesting
 
         }
 
+        [Fact]
+        public async Task Get_Delete_Item_ReturnsActionResult()
+        {
+            //Arrange
+            var mock = new Mock<IItemsRepository>();
+            Item item = new Item { ID = 1, UserID = "john123", Title = "New Title" };
+            mock.Setup(x => x.GetItem(It.IsAny<int>())).ReturnsAsync(item);
+            var controller = new ItemsController(mock.Object);
 
+            //Act
+            ActionResult result = await controller.Delete(item.ID);
+
+            //Assert
+            var viewResult = Assert.IsType<ViewResult>(result);
+            var model = Assert.IsType<Item>(viewResult.ViewData.Model);
+            Assert.Equal(item.ID, model.ID);
+            Assert.Equal(item.UserID, model.UserID);
+            Assert.Equal(item.Title, model.Title);
+        }
+
+        [Fact]
+        public async Task Post_Delete_And_Redirect_Result()
+        {
+            //Arrange
+            var mock = new Mock<IItemsRepository>();
+            Item item = new Item { ID = 1, UserID = "john123", Title = "New Title" };
+            mock.Setup(x => x.GetItem(It.IsAny<int>())).ReturnsAsync(item);
+            mock.Setup(repo => repo.DeleteItem(It.IsAny<Item>()))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            var controller = new ItemsController(mock.Object);
+
+            //Act
+            var result = await controller.DeleteConfirmed(item.ID);
+
+            //Assert
+            var RedirectToRouteResult = Assert.IsType<RedirectToRouteResult>(result);
+            Assert.Equal("Index", RedirectToRouteResult.RouteValues["action"]);
+            mock.Verify();
+        }
 
     }
 }
